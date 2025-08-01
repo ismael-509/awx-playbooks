@@ -1,19 +1,10 @@
-- name: Installer Nginx
-  hosts: all
+---
+- name: Installer Nginx localement
+  hosts: localhost
   become: true
   tasks:
-    - name: Installer le paquet nginx
+    - name: Installer Nginx
       ansible.builtin.package:
         name: nginx
         state: present
-
-    - name: Activer nginx au démarrage
-      ansible.builtin.service:
-        name: nginx
-        enabled: true
-
-    - name: Démarrer nginx
-      ansible.builtin.service:
-        name: nginx
-        state: started
 
