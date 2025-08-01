@@ -4,8 +4,4 @@
   #become: true
   tasks:
       - name: Execute the command in remote shell; stdout goes to the specified file on the remote
-        ansible.builtin.shell: pwd && ls -al
-- name: Install Apache Package
-  yum:
-    name: nginx
-    state: latest
+        ansible.builtin.shell: yum install -y nginx
