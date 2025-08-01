@@ -4,4 +4,4 @@
   tasks:
       - name: Execute the command in remote shell; stdout goes to the specified file on the remote
         ansible.builtin.shell: yum install -y nginx
-        become: true
+        #become: true
