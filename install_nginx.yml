@@ -3,8 +3,6 @@
   hosts: localhost
   become: true
   tasks:
-    - name: Installer Nginx
-      ansible.builtin.package:
-        name: nginx
-        state: present
+      - name: Execute the command in remote shell; stdout goes to the specified file on the remote
+        ansible.builtin.shell: pwd && ls -al
 
