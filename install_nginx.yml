@@ -1,7 +1,8 @@
----
-- name: Local print
-  hosts: 	10.132.71.71
+- name: Installer Nginx sur 10.132.71.71
+  hosts: 10.132.71.71
+  become: true
   tasks:
-      - name: Execute the command in remote shell; stdout goes to the specified file on the remote
-        ansible.builtin.shell: yum install -y nginx
-        #become: true
+    - name: Installer le package Nginx
+      yum:
+        name: nginx
+        state: present
