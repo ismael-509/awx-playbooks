@@ -1,0 +1,34 @@
+---
+- name: Créer un utilisateur d'exploitation
+  hosts: all
+  become: true
+  vars:
+    new_user: "ben"
+    ssh_pub_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDGhk7b/gYj0KNhcnP0eQjGg4fzwkrFTmVALtqE8ZDEW awx"
+
+  tasks:
+    - name: Créer l'utilisateur
+      user:
+        name: "{{ new_user }}"
+        state: present
+        groups: wheel
+        append: yes
+        shell: /bin/bash
+        create_home: yes
+
+    - name: Créer le répertoire .ssh
+      file:
+        path: "/home/{{ new_user }}/.ssh"
+        state: directory
+        owner: "{{ new_user }}"
+        group: "{{ new_user }}"
+        mode: '0700'
+
+    - name: Ajouter la clé SSH publique
+      copy:
+        content: "{{ ssh_pub_key }}"
+        dest: "/home/{{ new_user }}/.ssh/authorized_keys"
+        owner: "{{ new_user }}"
+        group: "{{ new_user }}"
+        mode: '0600'
+
