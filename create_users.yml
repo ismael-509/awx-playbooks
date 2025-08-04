@@ -1,0 +1,38 @@
+---
+- name: Créer plusieurs utilisateurs Linux
+  hosts: all
+  become: true
+  vars:
+    users:
+      - name: "ben"
+        ssh_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDGhk7b/gYj0KNhcnP0eQjGg4fzwkrFTmVALtqE8ZDEW awx"
+
+  tasks:
+    - name: Créer les utilisateurs
+      user:
+        name: "{{ item.name }}"
+        state: present
+        groups: wheel
+        append: yes
+        shell: /bin/bash
+        create_home: yes
+      loop: "{{ users }}"
+
+    - name: Créer les répertoires .ssh
+      file:
+        path: "/home/{{ item.name }}/.ssh"
+        state: directory
+        owner: "{{ item.name }}"
+        group: "{{ item.name }}"
+        mode: '0700'
+      loop: "{{ users }}"
+
+    - name: Ajouter les clés SSH publiques
+      copy:
+        content: "{{ item.ssh_key }}"
+        dest: "/home/{{ item.name }}/.ssh/authorized_keys"
+        owner: "{{ item.name }}"
+        group: "{{ item.name }}"
+        mode: '0600'
+      loop: "{{ users }}"
+
