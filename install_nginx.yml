@@ -1,8 +1,9 @@
-- name: Installer Nginx sur 10.132.71.71
-  hosts: 10.132.71.71
+ name: Installer Nginx localement
+  hosts: all
   become: true
   tasks:
-    - name: Installer le package Nginx
+    - name: Installer Nginx via YUM
       yum:
         name: nginx
         state: present
+
