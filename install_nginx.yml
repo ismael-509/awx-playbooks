@@ -1,9 +1,10 @@
- name: Installer Nginx localement
+---
+- name: Installer Nginx localement
   hosts: all
   become: true
   tasks:
     - name: Installer Nginx via YUM
-      yum:
+      ansible.builtin.yum:
         name: nginx
         state: present
 
