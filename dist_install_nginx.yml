@@ -1,31 +1,21 @@
 ---
-- name: Installer et configurer Nginx sur un port alternatif
+- name: Installer htop sur les serveurs
   hosts: all
   become: true
 
   tasks:
-    - name: Installer nginx via YUM
+    - name: Installer htop via YUM
       yum:
-        name: nginx
+        name: htop
         state: present
 
-    - name: Modifier la configuration de Nginx pour écouter sur le port 8081
-      lineinfile:
-        path: /etc/nginx/nginx.conf
-        regexp: '^(\s*)listen\s+80;'
-        line: '\1listen 8081;'
-        backrefs: yes
-      notify: Reload nginx
+    - name: Vérifier la version installée de htop
+      command: htop --version
+      register: htop_version
+      changed_when: false
 
-    - name: Démarrer et activer le service nginx
-      systemd:
-        name: nginx
-        enabled: true
-        state: started
+    - name: Afficher la version de htop
+      debug:
+        msg: "{{ htop_version.stdout }}"
 
-  handlers:
-    - name: Reload nginx
-      systemd:
-        name: nginx
-        state: reloaded
 
