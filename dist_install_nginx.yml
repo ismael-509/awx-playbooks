@@ -1,16 +1,31 @@
 ---
-- name: Installer Nginx
+- name: Installer et configurer Nginx sur un port alternatif
   hosts: all
   become: true
+
   tasks:
     - name: Installer nginx via YUM
       yum:
         name: nginx
         state: present
 
+    - name: Modifier la configuration de Nginx pour écouter sur le port 8081
+      lineinfile:
+        path: /etc/nginx/nginx.conf
+        regexp: '^(\s*)listen\s+80;'
+        line: '\1listen 8081;'
+        backrefs: yes
+      notify: Reload nginx
+
     - name: Démarrer et activer le service nginx
       systemd:
         name: nginx
         enabled: true
         state: started
+
+  handlers:
+    - name: Reload nginx
+      systemd:
+        name: nginx
+        state: reloaded
 
