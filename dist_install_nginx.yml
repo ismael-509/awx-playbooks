@@ -1,9 +1,14 @@
 ---
-- name: Installer htop sur les serveurs
+- name: Installer htop sur les serveurs avec EPEL
   hosts: all
   become: true
 
   tasks:
+    - name: Installer le dépôt EPEL
+      yum:
+        name: epel-release
+        state: present
+
     - name: Installer htop via YUM
       yum:
         name: htop
