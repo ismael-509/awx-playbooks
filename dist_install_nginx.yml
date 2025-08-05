@@ -1,0 +1,16 @@
+---
+- name: Installer Nginx
+  hosts: all
+  become: true
+  tasks:
+    - name: Installer nginx via YUM
+      yum:
+        name: nginx
+        state: present
+
+    - name: Démarrer et activer le service nginx
+      systemd:
+        name: nginx
+        enabled: true
+        state: started
+
