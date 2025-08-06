@@ -1,0 +1,14 @@
+---
+- name: Test de connexion Azure
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Lister les groupes de ressources Azure
+      azure.azcollection.azure_rm_resourcegroup_info:
+      register: result
+
+    - name: Afficher les ressources récupérées
+      debug:
+        var: result.resourcegroups
