@@ -1,9 +1,6 @@
 ---
 - name: Test de connexion Azure
-  hosts: localhost
-  connection: local
-  gather_facts: no
-
+  hosts: TestVM_ffff
   tasks:
     - name: Lister les groupes de ressources Azure
       azure.azcollection.azure_rm_resourcegroup_info:
