@@ -1,0 +1,9 @@
+---
+- name: Créer un fichier sur le serveur
+  hosts: all
+  become: yes
+  tasks:
+    - name: Créer un fichier de message
+      copy:
+        dest: /tmp/message.txt
+        content: "Bienvenue sur Azure VM avec Ansible AWX !"
