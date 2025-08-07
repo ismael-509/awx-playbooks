@@ -1,11 +1,14 @@
 ---
-- name: Test de connexion Azure
-  hosts: TestVM_ffff
+- name: Vérifier la connexion à Azure
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
   tasks:
-    - name: Lister les groupes de ressources Azure
+    - name: Lister les groupes de ressources dans Azure
       azure.azcollection.azure_rm_resourcegroup_info:
       register: result
 
-    - name: Afficher les ressources récupérées
+    - name: Afficher les groupes de ressources
       debug:
         var: result.resourcegroups
