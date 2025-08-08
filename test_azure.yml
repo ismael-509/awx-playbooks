@@ -1,0 +1,16 @@
+---
+- name: Test connexion Azure via AWX
+  hosts: localhost
+  connection: local
+  collections:
+    - azure.azcollection
+
+  tasks:
+    - name: Lister les groupes de ressources dans la subscription
+      azure_rm_resourcegroup_info:
+      register: result
+
+    - name: Afficher la liste des groupes de ressources
+      debug:
+        var: result.resourcegroups
+
