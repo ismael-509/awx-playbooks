@@ -1,16 +1,17 @@
 ---
-- name: Création complète d'une VM Azure avec Ubuntu 14.04.5-LTS
+- name: Création complète d'une VM Azure avec Ubuntu 20.04 LTS
   hosts: localhost
   connection: local
   collections:
     - azure.azcollection
   vars:
-    resource_group: "myResourceGroupGermany"
-    location: "germanywestcentral"
+    resource_group: "myResourceGroupFrance"
+    location: "francecentral"
     vm_name: "ansible-vm"
     admin_username: "azureuser"
     admin_password: "MotDePasseFort123!"
     vm_size: "Standard_B1s"
+    sku: "20_04-lts"
 
   tasks:
     - name: S'assurer que le groupe de ressources existe
@@ -62,7 +63,7 @@
         image:
           publisher: Canonical
           offer: UbuntuServer
-          sku: "14.04.5-LTS"
+          sku: "{{ sku }}"
           version: latest
         location: "{{ location }}"
         state: present
