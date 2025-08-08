@@ -62,7 +62,7 @@
         image:
           publisher: Canonical
           offer: UbuntuServer
-          sku: 14.04.5-LTS
+          sku: 14.04.4-LTS
           version: latest
         location: "{{ location }}"
         state: present
