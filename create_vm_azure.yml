@@ -1,11 +1,11 @@
-- name: Création complète d'une VM Azure avec Ubuntu 14.04.4-LTS
+- name: Création complète d'une VM Azure avec Ubuntu 22.04 LTS
   hosts: localhost
   connection: local
   collections:
     - azure.azcollection
   vars:
-    resource_group: "myResourceGroupGermany"
-    location: "germanywestcentral"
+    resource_group: "myResourceGroupFrance"
+    location: "francecentral"
     vm_name: "ansible-vm"
     admin_username: "azureuser"
     admin_password: "MotDePasseFort123!"
@@ -60,8 +60,8 @@
         network_interfaces: "{{ vm_name }}-nic"
         image:
           publisher: Canonical
-          offer: UbuntuServer
-          sku: "14.04.4-LTS"
-          version: "latest"
+          offer: 0001-com-ubuntu-server-jammy
+          sku: 22_04-lts-gen2
+          version: latest
         location: "{{ location }}"
         state: present
