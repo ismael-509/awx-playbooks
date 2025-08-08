@@ -45,10 +45,10 @@
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}-nic"
         location: "{{ location }}"
+        subnet_name: "{{ vm_name }}-subnet"
+        virtual_network: "{{ vm_name }}-vnet"
         ip_configurations:
           - name: ipconfig1
-            subnet: "{{ vm_name }}-subnet"
-            virtual_network: "{{ vm_name }}-vnet"
             public_ip_name: "{{ vm_name }}-publicip"
 
     - name: Créer la machine virtuelle Linux
