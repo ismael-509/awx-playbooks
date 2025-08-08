@@ -5,7 +5,7 @@
   collections:
     - azure.azcollection
   vars:
-    resource_group: "myResourceGroup"
+    resource_group: "myResourceGroupFrance"
     location: "francecentral"
     vm_name: "ansible-vm"
     admin_username: "azureuser"
