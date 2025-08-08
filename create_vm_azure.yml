@@ -6,7 +6,7 @@
     - azure.azcollection
   vars:
     resource_group: "myResourceGroup"
-    location: "eastus"
+    location: "francecentral"
     vm_name: "ansible-vm"
     admin_username: "azureuser"
     admin_password: "MotDePasseFort123!"
