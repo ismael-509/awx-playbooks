@@ -38,6 +38,7 @@
         allocation_method: Static
         name: "{{ vm_name }}-publicip"
         location: "{{ location }}"
+        sku: Standard
 
     - name: Créer une interface réseau
       azure_rm_networkinterface:
@@ -65,4 +66,3 @@
           version: latest
         location: "{{ location }}"
         state: present
-
