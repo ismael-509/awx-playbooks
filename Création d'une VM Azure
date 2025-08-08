@@ -1,0 +1,33 @@
+---
+- name: Création d'une VM Azure
+  hosts: localhost
+  connection: local
+  collections:
+    - azure.azcollection
+  vars:
+    resource_group: "MYRESOURCEGROUP"
+    location: "francecentral"
+    vm_name: "VM-ansible"
+    admin_username: "azureuser"
+    admin_password: "MonSuperMotDePasse123!"  # Pour Windows, sinon utilise une clé SSH pour Linux
+
+  tasks:
+    - name: S'assurer que le groupe de ressources existe
+      azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+
+    - name: Créer une machine virtuelle Linux
+      azure_rm_virtualmachine:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}"
+        vm_size: "Standard_B1s"
+        admin_username: "{{ admin_username }}"
+        admin_password: "{{ admin_password }}"
+        image:
+          offer: UbuntuServer
+          publisher: Canonical
+          sku: "20.04-LTS"
+          version: latest
+        location: "{{ location }}"
+        state: present
