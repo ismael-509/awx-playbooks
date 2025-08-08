@@ -1,14 +1,16 @@
 ---
-- name: Vérifier la connexion à Azure
+- name: Test connexion Azure via AWX
   hosts: localhost
   connection: local
-  gather_facts: false
+  collections:
+    - azure.azcollection
 
   tasks:
-    - name: Lister les groupes de ressources dans Azure
-      azure.azcollection.azure_rm_resourcegroup_info:
+    - name: Lister les groupes de ressources dans la subscription
+      azure_rm_resourcegroup_info:
       register: result
 
-    - name: Afficher les groupes de ressources
+    - name: Afficher la liste des groupes de ressources
       debug:
         var: result.resourcegroups
+
