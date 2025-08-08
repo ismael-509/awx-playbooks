@@ -1,9 +1,10 @@
-- name: Création complète d'une VM Azure avec Ubuntu 22.04 LTS
+- name: Création complète d'une VM Azure avec Ubuntu 20.04 LTS
   hosts: localhost
   connection: local
   collections:
     - azure.azcollection
   vars:
+    subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
     resource_group: "myResourceGroupFrance"
     location: "francecentral"
     vm_name: "ansible-vm"
@@ -14,25 +15,21 @@
   tasks:
     - name: S'assurer que le groupe de ressources existe
       azure_rm_resourcegroup:
+        subscription_id: "{{ subscription_id }}"
         name: "{{ resource_group }}"
         location: "{{ location }}"
 
     - name: Créer un réseau virtuel
       azure_rm_virtualnetwork:
+        subscription_id: "{{ subscription_id }}"
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}-vnet"
         address_prefixes: "10.0.0.0/16"
         location: "{{ location }}"
 
-    - name: Créer un sous-réseau
-      azure_rm_subnet:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}-subnet"
-        address_prefix: "10.0.1.0/24"
-        virtual_network: "{{ vm_name }}-vnet"
-
     - name: Créer une IP publique
       azure_rm_publicipaddress:
+        subscription_id: "{{ subscription_id }}"
         resource_group: "{{ resource_group }}"
         allocation_method: Static
         name: "{{ vm_name }}-publicip"
@@ -41,6 +38,7 @@
 
     - name: Créer une interface réseau
       azure_rm_networkinterface:
+        subscription_id: "{{ subscription_id }}"
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}-nic"
         location: "{{ location }}"
@@ -52,6 +50,7 @@
 
     - name: Créer la machine virtuelle Linux
       azure_rm_virtualmachine:
+        subscription_id: "{{ subscription_id }}"
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
         vm_size: "{{ vm_size }}"
@@ -60,8 +59,8 @@
         network_interfaces: "{{ vm_name }}-nic"
         image:
           publisher: Canonical
-          offer: 0001-com-ubuntu-server-jammy
-          sku: 22_04-lts-gen2
+          offer: ubuntu-24_04-lts  # ou une image valide dans francecentral (ex: '0001-com-ubuntu-server-jammy')
+          sku: server              # adapte selon ce que tu trouves avec az vm image list-offers
           version: latest
         location: "{{ location }}"
         state: present
