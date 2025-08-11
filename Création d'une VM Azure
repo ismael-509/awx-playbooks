@@ -9,7 +9,6 @@
     location: "eastus"
     vm_name: "awx-demo-vm"
     admin_username: "azureuser"
-    admin_password: "MotDePasseFort123!"  # Change-le !
     vm_size: "Standard_B1s"
 
   tasks:
