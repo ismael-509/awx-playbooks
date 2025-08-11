@@ -1,16 +1,15 @@
 ---
-- name: Création complète d'une VM Azure
+- name: Création rapide d'une VM Azure
   hosts: localhost
   connection: local
   collections:
     - azure.azcollection
   vars:
-    # Identifiants Azure (stockés dans tes Credentials AWX)
-    resource_group: "myResourceGroup"
+    resource_group: "awx-demo-rg"
     location: "eastus"
-    vm_name: "ansible-vm"
+    vm_name: "awx-demo-vm"
     admin_username: "azureuser"
-    admin_password: "MotDePasseFort123!"  # Pour Windows, sinon utiliser SSH pour Linux
+    admin_password: "MotDePasseFort123!"  # Change-le !
     vm_size: "Standard_B1s"
 
   tasks:
@@ -19,46 +18,13 @@
         name: "{{ resource_group }}"
         location: "{{ location }}"
 
-    - name: Créer un réseau virtuel
-      azure_rm_virtualnetwork:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}-vnet"
-        address_prefixes: "10.0.0.0/16"
-        location: "{{ location }}"
-
-    - name: Créer un sous-réseau
-      azure_rm_subnet:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}-subnet"
-        address_prefix: "10.0.1.0/24"
-        virtual_network: "{{ vm_name }}-vnet"
-
-    - name: Créer une IP publique
-      azure_rm_publicipaddress:
-        resource_group: "{{ resource_group }}"
-        allocation_method: Static
-        name: "{{ vm_name }}-publicip"
-        location: "{{ location }}"
-
-    - name: Créer une interface réseau
-      azure_rm_networkinterface:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}-nic"
-        location: "{{ location }}"
-        ip_configurations:
-          - name: ipconfig1
-            subnet: "{{ vm_name }}-subnet"
-            virtual_network: "{{ vm_name }}-vnet"
-            public_ip_name: "{{ vm_name }}-publicip"
-
-    - name: Créer la machine virtuelle Linux
+    - name: Créer une VM Linux simple (réseau auto)
       azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
         admin_password: "{{ admin_password }}"
-        network_interfaces: "{{ vm_name }}-nic"
         image:
           offer: UbuntuServer
           publisher: Canonical
