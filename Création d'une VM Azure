@@ -1,4 +1,3 @@
----
 - name: Création rapide d'une VM Azure
   hosts: localhost
   connection: local
@@ -9,13 +8,22 @@
     location: "eastus"
     vm_name: "awx-demo-vm"
     admin_username: "azureuser"
+    admin_password: "MotDePasseFort123!"
     vm_size: "Standard_B1s"
+    subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+    client_id: "62abec96-ec36-48d5-9778-438aa2e53112"
+    secret: "2Sr8Q~1pVP.OuiBqfsaojqena9~8-0LKfxPdnaml"
+    tenant: "bee93534-ed21-4737-9b99-32e13fba7e02"
 
   tasks:
     - name: S'assurer que le groupe de ressources existe
       azure_rm_resourcegroup:
         name: "{{ resource_group }}"
         location: "{{ location }}"
+        subscription_id: "{{ subscription_id }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
+        tenant: "{{ tenant }}"
 
     - name: Créer une VM Linux simple (réseau auto)
       azure_rm_virtualmachine:
@@ -31,3 +39,7 @@
           version: latest
         location: "{{ location }}"
         state: present
+        subscription_id: "{{ subscription_id }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
+        tenant: "{{ tenant }}"
