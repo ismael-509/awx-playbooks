@@ -16,7 +16,6 @@
       azure.azcollection.azure_rm_resourcegroup:
         name: "{{ resource_group }}"
         location: "{{ location }}"
-        state: present
 
     - name: Créer une machine virtuelle Linux
       azure.azcollection.azure_rm_virtualmachine:
@@ -30,4 +29,3 @@
           publisher: Canonical
           sku: 18.04-LTS
           version: latest
-        state: present
