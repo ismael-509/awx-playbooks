@@ -1,12 +1,12 @@
----
-- name: Vérifier connexion Azure
-  hosts: localhost
-  connection: local
-  gather_facts: no
+- name: Configurer TestVM
+  hosts: testvm
+  become: yes
   tasks:
-    - name: Lister les groupes de ressources
-      azure.azcollection.azure_rm_resourcegroup_info:
-      register: rg_list
+    - name: Mettre à jour la liste des paquets
+      apt:
+        update_cache: yes
 
-    - debug:
-        var: rg_list
+    - name: Installer Apache2
+      apt:
+        name: apache2
+        state: present
