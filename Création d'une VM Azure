@@ -1,4 +1,3 @@
----
 - name: Création rapide d'une VM Azure
   hosts: localhost
   connection: local
