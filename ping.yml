@@ -1,9 +1,12 @@
-# ping.yml
 ---
-- name: Test de connectivité Azure
-  hosts: all
+- name: Vérifier connexion Azure
+  hosts: localhost
+  connection: local
   gather_facts: no
-
   tasks:
-    - name: PING
-      ansible.builtin.ping:
+    - name: Lister les groupes de ressources
+      azure.azcollection.azure_rm_resourcegroup_info:
+      register: rg_list
+
+    - debug:
+        var: rg_list
