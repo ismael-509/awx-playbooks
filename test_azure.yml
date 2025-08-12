@@ -1,16 +1,20 @@
 ---
-- name: Test connexion Azure via AWX
-  hosts: localhost
-  connection: local
-  collections:
-    - azure.azcollection
-
+- name: Déployer nginx sur TestVM Azure
+  hosts: all
+  become: yes
   tasks:
-    - name: Lister les groupes de ressources dans la subscription
-      azure_rm_resourcegroup_info:
-      register: result
+    - name: Mettre à jour les paquets
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
 
-    - name: Afficher la liste des groupes de ressources
-      debug:
-        var: result.resourcegroups
+    - name: Installer nginx
+      apt:
+        name: nginx
+        state: present
 
+    - name: Démarrer et activer nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
