@@ -1,4 +1,4 @@
-- name: Configurer TestVM
+- name: Installer Docker sur TestVM
   hosts: testvm
   become: yes
   tasks:
@@ -6,7 +6,40 @@
       apt:
         update_cache: yes
 
-    - name: Installer Apache2
+    - name: Installer les dépendances pour Docker
       apt:
-        name: apache2
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
         state: present
+
+    - name: Ajouter la clé GPG officielle de Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Ajouter le dépôt officiel Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Mettre à jour à nouveau la liste des paquets
+      apt:
+        update_cache: yes
+
+    - name: Installer Docker CE
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+
+    - name: Démarrer et activer Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
