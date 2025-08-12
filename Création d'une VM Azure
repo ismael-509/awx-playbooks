@@ -4,8 +4,9 @@
   gather_facts: no
 
   vars:
-    resource_group: "awx-demo-rg"
-    location: "eastus"
+    subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+    resource_group: "MYRESOURCEGROUP"
+    location: "francecentral"
     vm_name: "ansible-vm01"
     vm_size: "Standard_DS1_v2"
     admin_username: "azureuser"
@@ -14,11 +15,14 @@
   tasks:
     - name: S'assurer que le groupe de ressources existe
       azure.azcollection.azure_rm_resourcegroup:
+        subscription_id: "{{ subscription_id }}"
         name: "{{ resource_group }}"
         location: "{{ location }}"
+        state: present
 
     - name: Créer une machine virtuelle Linux
       azure.azcollection.azure_rm_virtualmachine:
+        subscription_id: "{{ subscription_id }}"
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
         vm_size: "{{ vm_size }}"
@@ -29,3 +33,4 @@
           publisher: Canonical
           sku: 18.04-LTS
           version: latest
+        state: present
