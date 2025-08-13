@@ -4,62 +4,61 @@
   connection: local
   gather_facts: no
   vars:
-    resource_group: MYRESOURCEGROUP_FR
-    location: francecentral
+    resource_group: MYRESOURCEGROUP_FR   
+    location: francecentral               
+    vm_name: NouvelleVM01                 
+    vm_size: Standard_B1s                  
+    admin_username: azureuser
+    admin_password: "Ismael123!"
     vnet_name: MyVNet
     subnet_name: MySubnet
-    public_ip_name: MyPublicIP
+    ip_name: MyPublicIP
     nic_name: MyNIC
-    vm_name: NouvelleVM01
-    vm_size: Standard_B1s
-    admin_username: azureuser
-    admin_password: Ismael123!  
     image:
-      publisher: Canonical
       offer: 0001-com-ubuntu-server-jammy
+      publisher: Canonical
       sku: 22_04-lts-gen2
       version: latest
 
   tasks:
-    - name: Créer le groupe de ressources si inexistant
-      azure.azcollection.azure_rm_resourcegroup:
-        name: "{{ resource_group }}"
-        location: "{{ location }}"
-
     - name: Créer le réseau virtuel si inexistant
       azure.azcollection.azure_rm_virtualnetwork:
-        name: "{{ vnet_name }}"
         resource_group: "{{ resource_group }}"
+        name: "{{ vnet_name }}"
         address_prefixes: "10.0.0.0/16"
         location: "{{ location }}"
+        state: present
 
     - name: Créer le subnet si inexistant
       azure.azcollection.azure_rm_subnet:
-        name: "{{ subnet_name }}"
         resource_group: "{{ resource_group }}"
+        name: "{{ subnet_name }}"
         address_prefix: "10.0.1.0/24"
         virtual_network: "{{ vnet_name }}"
+        state: present
 
-    - name: Créer l'IP publique Standard
+    - name: Créer une IP publique Standard
       azure.azcollection.azure_rm_publicipaddress:
-        name: "{{ public_ip_name }}"
         resource_group: "{{ resource_group }}"
-        location: "{{ location }}"
         allocation_method: Static
         sku: Standard
+        name: "{{ ip_name }}"
+        location: "{{ location }}"
+        state: present
 
     - name: Créer la NIC attachée à l'IP publique
       azure.azcollection.azure_rm_networkinterface:
-        name: "{{ nic_name }}"
         resource_group: "{{ resource_group }}"
+        name: "{{ nic_name }}"
         location: "{{ location }}"
         ip_configurations:
           - name: ipconfig1
-            subnet_name: "{{ subnet_name }}"
+            subnet: "{{ subnet_name }}"
             virtual_network: "{{ vnet_name }}"
-            public_ip_name: "{{ public_ip_name }}"
+            public_ip_address_name: "{{ ip_name }}"
+        state: present
 
-    - name: Créer la VM Ubuntu
+    - name: Créer la VM
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
@@ -69,9 +68,10 @@
         admin_password: "{{ admin_password }}"
         network_interface_names:
           - "{{ nic_name }}"
-        image: "{{ image }}"
+        image:
+          offer: "{{ image.offer }}"
+          publisher: "{{ image.publisher }}"
+          sku: "{{ image.sku }}"
+          version: "{{ image.version }}"
+        os_type: Linux
         state: present
-        os_disk:
-          name: "{{ vm_name }}-osdisk"
-          caching: ReadWrite
-          create_option: FromImage
