@@ -2,33 +2,26 @@
 - name: Créer une nouvelle VM Ubuntu sur Azure
   hosts: localhost
   connection: local
-  collections:
-    - azure.azcollection
-  vars:
-    resource_group: "MYRESOURCEGROUP"
-    vm_name: "NouvelleVM"
-    location: "francecentral"
-    vm_size: "Standard_B1s"
-    admin_username: "azureuser"
-    admin_password: "Ismael123!"
-    image_publisher: "Canonical"
-    image_offer: "0001-com-ubuntu-server-jammy"
-    image_sku: "22_04-lts-gen2"
-    image_version: "latest"
-
+  gather_facts: no
   tasks:
-    - name: Créer la VM Ubuntu
+    - name: Créer la VM Ubuntu avec IP publique Standard
       azure.azcollection.azure_rm_virtualmachine:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}"
-        location: "{{ location }}"
-        vm_size: "{{ vm_size }}"
-        admin_username: "{{ admin_username }}"
-        password: "{{ admin_password }}"
-        ssh_password_enabled: yes
+        resource_group: "MYRESOURCEGROUP"
+        name: "NouvelleVM02"
+        location: "francecentral"
+        vm_size: "Standard_B1s"
+        admin_username: "azureuser"
+        admin_password: "Ismael123!"
         image:
-          publisher: "{{ image_publisher }}"
-          offer: "{{ image_offer }}"
-          sku: "{{ image_sku }}"
-          version: "{{ image_version }}"
+          offer: "0001-com-ubuntu-server-jammy"
+          publisher: "Canonical"
+          sku: "22_04-lts-gen2"
+          version: "latest"
+        network_interface_names:
+          - "NouvelleVM02-NIC"
+        virtual_network_name: "VNet-MYRG"
+        subnet_name: "Subnet-MYRG"
+        public_ip_allocation_method: "Static"
+        public_ip_sku: "Standard"
+        ssh_password_enabled: yes
         state: present
