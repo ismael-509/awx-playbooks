@@ -1,21 +1,67 @@
 ---
-- name: Créer une nouvelle VM Ubuntu sur Azure
+- name: Créer une VM Ubuntu sur Azure
   hosts: localhost
   connection: local
   gather_facts: no
   tasks:
-    - name: Créer la VM
+
+    - name: Créer le groupe de ressources si inexistant
+      azure.azcollection.azure_rm_resourcegroup:
+        name: MYRESOURCEGROUP_FR
+        location: francecentral
+        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+
+    - name: Créer le réseau virtuel
+      azure.azcollection.azure_rm_virtualnetwork:
+        name: MyVNet
+        resource_group: MYRESOURCEGROUP_FR
+        address_prefixes: "10.0.0.0/16"
+        location: francecentral
+        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+
+    - name: Créer un subnet
+      azure.azcollection.azure_rm_subnet:
+        name: MySubnet
+        resource_group: MYRESOURCEGROUP_FR
+        virtual_network: MyVNet
+        address_prefix: "10.0.0.0/24"
+        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+
+    - name: Créer une IP publique Standard
+      azure.azcollection.azure_rm_publicipaddress:
+        name: MyPublicIP
+        resource_group: MYRESOURCEGROUP_FR
+        location: francecentral
+        allocation_method: Static
+        sku: Standard
+        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+
+    - name: Créer la NIC attachée à l'IP publique
+      azure.azcollection.azure_rm_networkinterface:
+        name: MyNIC
+        resource_group: MYRESOURCEGROUP_FR
+        location: francecentral
+        ip_configurations:
+          - name: ipconfig1
+            subnet: MySubnet
+            virtual_network: MyVNet
+            public_ip_address_name: MyPublicIP
+        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+
+    - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: MYRESOURCEGROUP_FR
         name: NouvelleVM01
+        location: francecentral
         vm_size: Standard_B1s
         admin_username: azureuser
         admin_password: Ismael123!
+        network_interface_names:
+          - MyNIC
         image:
-          offer: 0001-com-ubuntu-server-jammy
-          publisher: Canonical
-          sku: 22_04-lts-gen2
+          offer: "0001-com-ubuntu-server-jammy"
+          publisher: "Canonical"
+          sku: "22_04-lts-gen2"
           version: latest
-        location: francecentral
-        network_interface_names: MyNIC01
-        ssh_password_enabled: yes
+        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+        state: present
