@@ -3,72 +3,19 @@
   hosts: localhost
   connection: local
   gather_facts: no
-  vars:
-    resource_group: MYRESOURCEGROUP
-    location: eastus
-    vm_name: NouvelleVM02
-    admin_username: azureuser
-    admin_password: Ismael123!
-    vm_size: Standard_B1s
-    network_name: MyVNet
-    subnet_name: MySubnet
-    public_ip_name: MyPublicIP02
-    nic_name: MyNIC02
-    image:
-      offer: UbuntuServer
-      publisher: Canonical
-      sku: 22_04-lts-gen2
-      version: latest
-
   tasks:
-
-    - name: Créer le réseau virtuel si inexistant
-      azure.azcollection.azure_rm_virtualnetwork:
-        resource_group: "{{ resource_group }}"
-        name: "{{ network_name }}"
-        address_prefixes: "10.0.0.0/16"
-        location: "{{ location }}"
-
-    - name: Créer le subnet
-      azure.azcollection.azure_rm_subnet:
-        resource_group: "{{ resource_group }}"
-        name: "{{ subnet_name }}"
-        address_prefix: "10.0.0.0/24"
-        virtual_network: "{{ network_name }}"
-
-    - name: Créer une IP publique Standard
-      azure.azcollection.azure_rm_publicipaddress:
-        resource_group: "{{ resource_group }}"
-        allocation_method: Static
-        sku: Standard
-        name: "{{ public_ip_name }}"
-        location: "{{ location }}"
-
-    - name: Créer la NIC
-      azure.azcollection.azure_rm_networkinterface:
-        resource_group: "{{ resource_group }}"
-        name: "{{ nic_name }}"
-        location: "{{ location }}"
-        ip_configurations:
-          - name: ipconfig1
-            subnet: "{{ subnet_name }}"
-            virtual_network: "{{ network_name }}"
-            public_ip_address_name: "{{ public_ip_name }}"
-
-    - name: Créer la VM Ubuntu
+    - name: Créer la VM
       azure.azcollection.azure_rm_virtualmachine:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}"
-        location: "{{ location }}"
-        vm_size: "{{ vm_size }}"
-        admin_username: "{{ admin_username }}"
-        admin_password: "{{ admin_password }}"
-        network_interface_names:
-          - "{{ nic_name }}"
+        resource_group: MYRESOURCEGROUP_FR
+        name: NouvelleVM01
+        vm_size: Standard_B1s
+        admin_username: azureuser
+        admin_password: Ismael123!
         image:
-          offer: "{{ image.offer }}"
-          publisher: "{{ image.publisher }}"
-          sku: "{{ image.sku }}"
-          version: "{{ image.version }}"
-        os_type: Linux
-        state: present
+          offer: 0001-com-ubuntu-server-jammy
+          publisher: Canonical
+          sku: 22_04-lts-gen2
+          version: latest
+        location: francecentral
+        network_interface_names: MyNIC01
+        ssh_password_enabled: yes
