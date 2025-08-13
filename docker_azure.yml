@@ -1,0 +1,29 @@
+---
+- name: Installer Docker sur VM Ubuntu
+  hosts: all
+  become: true
+  gather_facts: yes
+
+  tasks:
+    - name: Mettre à jour la liste des paquets
+      apt:
+        update_cache: yes
+
+    - name: Installer Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Démarrer et activer Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Vérifier que Docker est installé
+      command: docker --version
+      register: docker_version
+
+    - name: Afficher la version de Docker
+      debug:
+        msg: "Docker version: {{ docker_version.stdout }}"
