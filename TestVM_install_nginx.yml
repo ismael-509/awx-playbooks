@@ -2,41 +2,18 @@
 - name: Installer Docker sur VM Ubuntu
   hosts: all
   become: yes
-  vars:
-    ansible_user: azureuser         
-    ansible_password: "Ismael123!"  
   tasks:
     - name: Mettre à jour la liste des paquets
       ansible.builtin.apt:
         update_cache: yes
 
-    - name: Installer les paquets nécessaires
-      ansible.builtin.apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - software-properties-common
-        state: present
-
-    - name: Ajouter la clé GPG officielle de Docker
-      ansible.builtin.apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
-
-    - name: Ajouter le dépôt Docker
-      ansible.builtin.apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
-        state: present
-
     - name: Installer Docker
       ansible.builtin.apt:
-        name: docker-ce
+        name: docker.io
         state: present
-        update_cache: yes
 
     - name: Démarrer et activer Docker
       ansible.builtin.systemd:
         name: docker
-        state: started
         enabled: yes
+        state: started
