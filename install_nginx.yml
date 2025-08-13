@@ -1,10 +1,20 @@
 ---
-- name: Installer Nginx localement
+- name: Installer MySQL sur le serveur cible
   hosts: all
-  become: true
+  become: yes
   tasks:
-    - name: Installer Nginx via YUM
+    - name: Mettre à jour la liste des paquets
       ansible.builtin.yum:
-        name: nginx
+        name: "*"
+        state: latest
+
+    - name: Installer MySQL Server
+      ansible.builtin.yum:
+        name: mysql-server
         state: present
 
+    - name: Démarrer le service MySQL
+      ansible.builtin.service:
+        name: mysqld
+        state: started
+        enabled: yes
