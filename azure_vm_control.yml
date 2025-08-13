@@ -7,11 +7,11 @@
   vars:
     resource_group: "MYRESOURCEGROUP"
     vm_name: "TestVM"
-    vm_power_state: "start"   # "start" pour démarrer, "deallocate" pour arrêter
+    started: true   
 
   tasks:
     - name: Contrôler l'état de la VM
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
-        power_state: "{{ vm_power_state }}"
+        started: "{{ started }}"
