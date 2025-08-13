@@ -1,67 +1,86 @@
 ---
-- name: Créer une VM Ubuntu sur Azure
+- name: Créer une nouvelle VM Ubuntu sur Azure
   hosts: localhost
   connection: local
   gather_facts: no
+  vars:
+    resource_group: MYRESOURCEGROUP_FR
+    location: francecentral
+    vnet_name: MyVNet
+    subnet_name: MySubnet
+    public_ip_name: MyPublicIP
+    nic_name: MyNIC
+    vm_name: NouvelleVM01
+    vm_size: Standard_B1s
+    admin_username: azureuser
+    admin_password: Ismael123!   
+    subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+
   tasks:
 
     - name: Créer le groupe de ressources si inexistant
       azure.azcollection.azure_rm_resourcegroup:
-        name: MYRESOURCEGROUP_FR
-        location: francecentral
-        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+        state: present
+        subscription_id: "{{ subscription_id }}"
 
-    - name: Créer le réseau virtuel
+    - name: Créer le réseau virtuel si inexistant
       azure.azcollection.azure_rm_virtualnetwork:
-        name: MyVNet
-        resource_group: MYRESOURCEGROUP_FR
+        name: "{{ vnet_name }}"
+        resource_group: "{{ resource_group }}"
         address_prefixes: "10.0.0.0/16"
-        location: francecentral
-        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+        location: "{{ location }}"
+        state: present
+        subscription_id: "{{ subscription_id }}"
 
-    - name: Créer un subnet
+    - name: Créer le subnet si inexistant
       azure.azcollection.azure_rm_subnet:
-        name: MySubnet
-        resource_group: MYRESOURCEGROUP_FR
-        virtual_network: MyVNet
-        address_prefix: "10.0.0.0/24"
-        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+        name: "{{ subnet_name }}"
+        resource_group: "{{ resource_group }}"
+        address_prefix: "10.0.1.0/24"
+        virtual_network_name: "{{ vnet_name }}"
+        state: present
+        subscription_id: "{{ subscription_id }}"
 
     - name: Créer une IP publique Standard
       azure.azcollection.azure_rm_publicipaddress:
-        name: MyPublicIP
-        resource_group: MYRESOURCEGROUP_FR
-        location: francecentral
+        name: "{{ public_ip_name }}"
+        resource_group: "{{ resource_group }}"
+        location: "{{ location }}"
         allocation_method: Static
         sku: Standard
-        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+        state: present
+        subscription_id: "{{ subscription_id }}"
 
     - name: Créer la NIC attachée à l'IP publique
       azure.azcollection.azure_rm_networkinterface:
-        name: MyNIC
-        resource_group: MYRESOURCEGROUP_FR
-        location: francecentral
+        name: "{{ nic_name }}"
+        resource_group: "{{ resource_group }}"
+        location: "{{ location }}"
         ip_configurations:
           - name: ipconfig1
-            subnet: MySubnet
-            virtual_network: MyVNet
-            public_ip_address_name: MyPublicIP
-        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+            subnet_name: "{{ subnet_name }}"
+            virtual_network_name: "{{ vnet_name }}"
+            public_ip_address_name: "{{ public_ip_name }}"
+        state: present
+        subscription_id: "{{ subscription_id }}"
 
     - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
-        resource_group: MYRESOURCEGROUP_FR
-        name: NouvelleVM01
-        location: francecentral
-        vm_size: Standard_B1s
-        admin_username: azureuser
-        admin_password: Ismael123!
+        name: "{{ vm_name }}"
+        resource_group: "{{ resource_group }}"
+        location: "{{ location }}"
+        vm_size: "{{ vm_size }}"
+        admin_username: "{{ admin_username }}"
+        admin_password: "{{ admin_password }}"
         network_interface_names:
-          - MyNIC
+          - "{{ nic_name }}"
         image:
           offer: "0001-com-ubuntu-server-jammy"
           publisher: "Canonical"
           sku: "22_04-lts-gen2"
           version: latest
-        subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
+        os_type: Linux
         state: present
+        subscription_id: "{{ subscription_id }}"
