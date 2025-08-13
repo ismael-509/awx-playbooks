@@ -1,45 +1,34 @@
 ---
-- name: Création rapide d'une VM Azure
+- name: Créer une nouvelle VM Ubuntu sur Azure
   hosts: localhost
   connection: local
   collections:
     - azure.azcollection
   vars:
-    resource_group: "awx-demo-rg"
-    location: "eastus"
-    vm_name: "awx-demo-vm"
-    admin_username: "azureuser"
-    admin_password: "MotDePasseFort123!"  # Pense à changer ce mot de passe
-    vm_size: "Standard_B1s"
-
+    resource_group: "MYRESOURCEGROUP"         
+    vm_name: "NewTestVM"                      
+    location: "East US"                        
+    vm_size: "Standard_B1s"                   
+    admin_username: "azureuser"            
+    admin_password: "Ismael123!"           
+    image:
+      offer: "UbuntuServer"
+      publisher: "Canonical"
+      sku: "22.04-LTS"
+      version: "latest"
   tasks:
-    - name: S'assurer que le groupe de ressources existe
-      azure_rm_resourcegroup:
-        name: "{{ resource_group }}"
-        location: "{{ location }}"
-      environment:
-        AZURE_SUBSCRIPTION_ID: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
-        AZURE_CLIENT_ID: "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
-        AZURE_SECRET: "{{ lookup('env', 'AZURE_SECRET') }}"
-        AZURE_TENANT: "{{ lookup('env', 'AZURE_TENANT') }}"
 
-    - name: Créer une VM Linux simple (réseau auto)
-      azure_rm_virtualmachine:
+    - name: Créer la nouvelle VM
+      azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
         admin_password: "{{ admin_password }}"
         image:
-          offer: UbuntuServer
-          publisher: Canonical
-          sku: "20_04-lts"
-          version: latest
+          offer: "{{ image.offer }}"
+          publisher: "{{ image.publisher }}"
+          sku: "{{ image.sku }}"
+          version: "{{ image.version }}"
         location: "{{ location }}"
         state: present
-      environment:
-        AZURE_SUBSCRIPTION_ID: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
-        AZURE_CLIENT_ID: "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
-        AZURE_SECRET: "{{ lookup('env', 'AZURE_SECRET') }}"
-        AZURE_TENANT: "{{ lookup('env', 'AZURE_TENANT') }}"
-
