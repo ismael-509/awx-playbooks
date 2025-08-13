@@ -13,17 +13,19 @@
     vm_name: NouvelleVM01
     vm_size: Standard_B1s
     admin_username: azureuser
-    admin_password: Ismael123!   
+    admin_password: "Ismael123!"  # ou SSH key
+    image_publisher: Canonical
+    image_offer: 0001-com-ubuntu-server-jammy
+    image_sku: 22_04-lts-gen2
     subscription_id: "caf8f202-8483-4835-914f-76f3929c6423"
 
   tasks:
-
     - name: Créer le groupe de ressources si inexistant
       azure.azcollection.azure_rm_resourcegroup:
         name: "{{ resource_group }}"
         location: "{{ location }}"
-        state: present
         subscription_id: "{{ subscription_id }}"
+        state: present
 
     - name: Créer le réseau virtuel si inexistant
       azure.azcollection.azure_rm_virtualnetwork:
@@ -32,16 +34,14 @@
         address_prefixes: "10.0.0.0/16"
         location: "{{ location }}"
         state: present
-        subscription_id: "{{ subscription_id }}"
 
-    - name: Créer le subnet si inexistant
+    - name: Créer le subnet
       azure.azcollection.azure_rm_subnet:
         name: "{{ subnet_name }}"
         resource_group: "{{ resource_group }}"
+        virtual_network: "{{ vnet_name }}"
         address_prefix: "10.0.1.0/24"
-        virtual_network_name: "{{ vnet_name }}"
         state: present
-        subscription_id: "{{ subscription_id }}"
 
     - name: Créer une IP publique Standard
       azure.azcollection.azure_rm_publicipaddress:
@@ -51,7 +51,6 @@
         allocation_method: Static
         sku: Standard
         state: present
-        subscription_id: "{{ subscription_id }}"
 
     - name: Créer la NIC attachée à l'IP publique
       azure.azcollection.azure_rm_networkinterface:
@@ -64,7 +63,6 @@
             virtual_network_name: "{{ vnet_name }}"
             public_ip_address_name: "{{ public_ip_name }}"
         state: present
-        subscription_id: "{{ subscription_id }}"
 
     - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
@@ -77,9 +75,9 @@
         network_interface_names:
           - "{{ nic_name }}"
         image:
-          offer: "0001-com-ubuntu-server-jammy"
-          publisher: "Canonical"
-          sku: "22_04-lts-gen2"
+          publisher: "{{ image_publisher }}"
+          offer: "{{ image_offer }}"
+          sku: "{{ image_sku }}"
           version: latest
         os_type: Linux
         state: present
