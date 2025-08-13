@@ -4,79 +4,73 @@
   connection: local
   gather_facts: no
   vars:
-    resource_group: "MYRESOURCEGROUP"
-    location: "francecentral"
-    virtual_network: "MyVNet"
-    subnet_name: "MySubnet"
-    network_interface: "MyNIC"
-    public_ip_name: "MyPublicIP"
-    vm_name: "NouvelleVM01"
-    vm_size: "Standard_B1s"
-    admin_username: "azureuser"
+    resource_group: MYRESOURCEGROUP
+    location: francecentral      
+    vm_name: NouvelleVM02
+    admin_user: azureuser
     admin_password: "Ismael123!"
-    image_publisher: "Canonical"
-    image_offer: "0001-com-ubuntu-server-jammy"
-    image_sku: "22_04-lts-gen2"
+    vnet_name: MyVNet
+    subnet_name: MySubnet
+    ip_name: MyPublicIP
+    nic_name: MyNIC
+    vm_size: Standard_B1s
+    image:
+      publisher: Canonical
+      offer: 0001-com-ubuntu-server-jammy
+      sku: 22_04-lts-gen2
+      version: latest
+
   tasks:
-
-    - name: Vérifier le quota d'IP publiques Standard
-      azure.azcollection.azure_rm_network_usage_facts:
-        location: "{{ location }}"
-      register: network_usage
-
-    - name: Déterminer si on peut créer une IP publique Standard
-      set_fact:
-        can_create_public_ip: "{{ (network_usage.network_resources | selectattr('name','equalto','Public IP Addresses - Standard') | first).current_value < (network_usage.network_resources | selectattr('name','equalto','Public IP Addresses - Standard') | first).limit }}"
 
     - name: Créer le groupe de ressources si inexistant
       azure.azcollection.azure_rm_resourcegroup:
         name: "{{ resource_group }}"
         location: "{{ location }}"
 
-    - name: Créer le virtual network
+    - name: Créer un réseau virtuel si inexistant
       azure.azcollection.azure_rm_virtualnetwork:
         resource_group: "{{ resource_group }}"
-        name: "{{ virtual_network }}"
+        name: "{{ vnet_name }}"
         address_prefixes: "10.0.0.0/16"
+        location: "{{ location }}"
 
-    - name: Créer le subnet
+    - name: Créer un subnet
       azure.azcollection.azure_rm_subnet:
         resource_group: "{{ resource_group }}"
         name: "{{ subnet_name }}"
-        address_prefix: "10.0.0.0/24"
-        virtual_network: "{{ virtual_network }}"
+        address_prefix: "10.0.1.0/24"
+        virtual_network: "{{ vnet_name }}"
 
-    - name: Créer l'IP publique Standard si le quota le permet
+    - name: Créer une IP publique Standard (optionnelle)
       azure.azcollection.azure_rm_publicipaddress:
         resource_group: "{{ resource_group }}"
         allocation_method: Static
         sku: Standard
-        name: "{{ public_ip_name }}"
+        name: "{{ ip_name }}"
         location: "{{ location }}"
-      when: can_create_public_ip
 
-    - name: Créer la NIC
+    - name: Créer la carte réseau (NIC)
       azure.azcollection.azure_rm_networkinterface:
         resource_group: "{{ resource_group }}"
-        name: "{{ network_interface }}"
-        virtual_network: "{{ virtual_network }}"
-        subnet: "{{ subnet_name }}"
-        ip_configurations:
-          - name: ipconfig1
-            public_ip_address_name: "{{ public_ip_name if can_create_public_ip else omit }}"
+        name: "{{ nic_name }}"
+        virtual_network: "{{ vnet_name }}"
+        subnet_name: "{{ subnet_name }}"
+        public_ip_name: "{{ ip_name }}"
+        location: "{{ location }}"
 
     - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
         vm_size: "{{ vm_size }}"
-        admin_username: "{{ admin_username }}"
+        admin_username: "{{ admin_user }}"
         admin_password: "{{ admin_password }}"
+        network_interface_names:
+          - "{{ nic_name }}"
         image:
-          publisher: "{{ image_publisher }}"
-          offer: "{{ image_offer }}"
-          sku: "{{ image_sku }}"
-          version: latest
-        network_interfaces:
-          - "{{ network_interface }}"
+          publisher: "{{ image.publisher }}"
+          offer: "{{ image.offer }}"
+          sku: "{{ image.sku }}"
+          version: "{{ image.version }}"
         location: "{{ location }}"
+        state: present
