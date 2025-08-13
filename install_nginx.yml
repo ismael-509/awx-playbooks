@@ -1,5 +1,5 @@
 ---
-- name: Installer MySQL sur le serveur cible
+- name: Installer MariaDB sur le serveur cible
   hosts: all
   become: yes
   tasks:
@@ -8,13 +8,13 @@
         name: "*"
         state: latest
 
-    - name: Installer MySQL Server
+    - name: Installer MariaDB Server
       ansible.builtin.yum:
-        name: mysql-server
+        name: mariadb-server
         state: present
 
-    - name: Démarrer le service MySQL
+    - name: Démarrer le service MariaDB
       ansible.builtin.service:
-        name: mysqld
+        name: mariadb
         state: started
         enabled: yes
