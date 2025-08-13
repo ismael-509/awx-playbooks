@@ -6,11 +6,11 @@
     - azure.azcollection
   vars:
     resource_group: "MYRESOURCEGROUP"
-    vm_name: "deuxiemeVM"          
-    location: "eastus"             
-    vm_size: "Standard_B1s"       
+    vm_name: "NouvelleVM"
+    location: "eastus"
+    vm_size: "Standard_B1s"
     admin_username: "azureuser"
-    admin_password: "Ismael123!"   
+    admin_password: "Ismael123!"
     image_publisher: "Canonical"
     image_offer: "0001-com-ubuntu-server-jammy"
     image_sku: "22_04-lts-gen2"
@@ -24,11 +24,11 @@
         location: "{{ location }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
-        admin_password: "{{ admin_password }}"
+        password: "{{ admin_password }}"
+        ssh_password_enabled: yes
         image:
           publisher: "{{ image_publisher }}"
           offer: "{{ image_offer }}"
           sku: "{{ image_sku }}"
           version: "{{ image_version }}"
-        authentication_type: password
         state: present
