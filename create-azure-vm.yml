@@ -1,4 +1,3 @@
----
 - name: Créer une nouvelle VM Ubuntu sur Azure
   hosts: localhost
   connection: local
