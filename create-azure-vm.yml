@@ -5,20 +5,19 @@
   collections:
     - azure.azcollection
   vars:
-    resource_group: "MYRESOURCEGROUP"         
-    vm_name: "NewTestVM"                      
-    location: "East US"                        
-    vm_size: "Standard_B1s"                   
-    admin_username: "azureuser"            
-    admin_password: "Ismael123!"           
+    resource_group: "MYRESOURCEGROUP"
+    vm_name: "NewTestVM"
+    location: "East US"
+    vm_size: "Standard_B1s"
+    admin_username: "azureuser"
+    admin_password: "Ismael123!"
     image:
       offer: "UbuntuServer"
       publisher: "Canonical"
       sku: "22.04-LTS"
       version: "latest"
   tasks:
-
-    - name: Créer la nouvelle VM
+    - name: Créer la VM
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
