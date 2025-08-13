@@ -15,4 +15,3 @@
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
         state: "{{ action }}"
-
