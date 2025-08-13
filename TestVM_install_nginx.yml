@@ -1,15 +1,20 @@
 ---
 - name: Installer Docker sur VM Ubuntu
-  hosts: all
-  become: yes
+  hosts: 4.251.106.69
+  become: true   
+  vars:
+    docker_packages:
+      - docker.io
+      - docker-compose-plugin
+
   tasks:
     - name: Mettre à jour la liste des paquets
       ansible.builtin.apt:
         update_cache: yes
 
-    - name: Installer Docker
+    - name: Installer Docker et Docker Compose
       ansible.builtin.apt:
-        name: docker.io
+        name: "{{ docker_packages }}"
         state: present
 
     - name: Démarrer et activer Docker
@@ -17,3 +22,11 @@
         name: docker
         enabled: yes
         state: started
+
+    - name: Vérifier la version de Docker
+      ansible.builtin.shell: docker --version
+      register: docker_version
+
+    - name: Afficher la version de Docker
+      ansible.builtin.debug:
+        msg: "{{ docker_version.stdout }}"
