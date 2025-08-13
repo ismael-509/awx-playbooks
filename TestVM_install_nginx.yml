@@ -1,20 +1,15 @@
 ---
 - name: Installer Docker sur VM Ubuntu
   hosts: 4.251.106.69
-  become: true   
-  vars:
-    docker_packages:
-      - docker.io
-      - docker-compose-plugin
-
+  become: true
   tasks:
     - name: Mettre à jour la liste des paquets
       ansible.builtin.apt:
         update_cache: yes
 
-    - name: Installer Docker et Docker Compose
+    - name: Installer Docker
       ansible.builtin.apt:
-        name: "{{ docker_packages }}"
+        name: docker.io
         state: present
 
     - name: Démarrer et activer Docker
@@ -23,10 +18,17 @@
         enabled: yes
         state: started
 
-    - name: Vérifier la version de Docker
-      ansible.builtin.shell: docker --version
-      register: docker_version
+    - name: Installer Docker Compose via le binaire officiel
+      ansible.builtin.shell: |
+        curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+      args:
+        creates: /usr/local/bin/docker-compose
 
-    - name: Afficher la version de Docker
+    - name: Vérifier la version de Docker Compose
+      ansible.builtin.shell: docker-compose --version
+      register: docker_compose_version
+
+    - name: Afficher la version de Docker Compose
       ansible.builtin.debug:
-        msg: "{{ docker_version.stdout }}"
+        msg: "{{ docker_compose_version.stdout }}"
