@@ -4,30 +4,36 @@
   connection: local
   gather_facts: no
   vars:
-    resource_group: MYRESOURCEGROUP_FR   
-    location: francecentral               
-    vm_name: NouvelleVM01                 
-    vm_size: Standard_B1s                  
-    admin_username: azureuser
+    resource_group: "MYRESOURCEGROUP_FR"
+    location: "francecentral"
+    vnet_name: "MyVNet"
+    subnet_name: "MySubnet"
+    ip_name: "MyPublicIP"
+    nic_name: "MyNIC"
+    vm_name: "NouvelleVM01"
+    vm_size: "Standard_B1s"
+    admin_username: "azureuser"
     admin_password: "Ismael123!"
-    vnet_name: MyVNet
-    subnet_name: MySubnet
-    ip_name: MyPublicIP
-    nic_name: MyNIC
-    image:
-      offer: 0001-com-ubuntu-server-jammy
-      publisher: Canonical
-      sku: 22_04-lts-gen2
-      version: latest
+    image_publisher: "Canonical"
+    image_offer: "0001-com-ubuntu-server-jammy"
+    image_sku: "22_04-lts-gen2"
+    image_version: "latest"
 
   tasks:
+
+    - name: Créer le groupe de ressources si inexistant
+      azure.azcollection.azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+        state: present
+
     - name: Créer le réseau virtuel si inexistant
       azure.azcollection.azure_rm_virtualnetwork:
         resource_group: "{{ resource_group }}"
         name: "{{ vnet_name }}"
         address_prefixes: "10.0.0.0/16"
-        location: "{{ location }}"
         state: present
+        location: "{{ location }}"
 
     - name: Créer le subnet si inexistant
       azure.azcollection.azure_rm_subnet:
@@ -40,11 +46,11 @@
     - name: Créer une IP publique Standard
       azure.azcollection.azure_rm_publicipaddress:
         resource_group: "{{ resource_group }}"
+        name: "{{ ip_name }}"
         allocation_method: Static
         sku: Standard
-        name: "{{ ip_name }}"
-        location: "{{ location }}"
         state: present
+        location: "{{ location }}"
 
     - name: Créer la NIC attachée à l'IP publique
       azure.azcollection.azure_rm_networkinterface:
@@ -58,20 +64,19 @@
             public_ip_address_name: "{{ ip_name }}"
         state: present
 
-    - name: Créer la VM
+    - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
-        location: "{{ location }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
         admin_password: "{{ admin_password }}"
         network_interface_names:
           - "{{ nic_name }}"
         image:
-          offer: "{{ image.offer }}"
-          publisher: "{{ image.publisher }}"
-          sku: "{{ image.sku }}"
-          version: "{{ image.version }}"
-        os_type: Linux
+          offer: "{{ image_offer }}"
+          publisher: "{{ image_publisher }}"
+          sku: "{{ image_sku }}"
+          version: "{{ image_version }}"
         state: present
+        location: "{{ location }}"
