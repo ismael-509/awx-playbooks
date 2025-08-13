@@ -7,7 +7,7 @@
   vars:
     resource_group: "MYRESOURCEGROUP"
     vm_name: "TestVM"
-    started: false   
+    started: true 
 
   tasks:
     - name: Contrôler l'état de la VM
