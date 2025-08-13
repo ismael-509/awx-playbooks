@@ -1,24 +1,21 @@
 ---
-- name: Créer une nouvelle VM Ubuntu 22.04 sur Azure
+- name: Créer une nouvelle VM Ubuntu sur Azure
   hosts: localhost
   connection: local
   collections:
     - azure.azcollection
-
   vars:
     resource_group: "MYRESOURCEGROUP"    
-    vm_name: "MyNewVM"                   
-    location: "East US"                   
+    vm_name: "NouvelleVM"                 
+    location: "eastus"                     
     vm_size: "Standard_B1s"               
-    admin_username: "azureuser"           
-    admin_password: "Ismael123!"           
-    image_offer: "UbuntuServer"
+    admin_username: "azureuser"
+    admin_password: "Ismael123!"          
     image_publisher: "Canonical"
+    image_offer: "UbuntuServer"
     image_sku: "22_04-lts-gen2"
-    image_version: "latest"
-
   tasks:
-    - name: Créer la VM Ubuntu 22.04
+    - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
@@ -27,9 +24,8 @@
         admin_username: "{{ admin_username }}"
         admin_password: "{{ admin_password }}"
         image:
-          offer: "{{ image_offer }}"
           publisher: "{{ image_publisher }}"
+          offer: "{{ image_offer }}"
           sku: "{{ image_sku }}"
-          version: "{{ image_version }}"
-        ssh_password_enabled: yes
+          version: "latest"
         state: present
