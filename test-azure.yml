@@ -1,0 +1,20 @@
+---
+- name: Test connexion Azure - création groupe de ressources
+  hosts: localhost
+  connection: local
+  collections:
+    - azure.azcollection
+  tasks:
+    - name: Lister les groupes de ressources
+      azure_rm_resourcegroup_info:
+      register: result
+
+    - debug:
+        var: result.resourcegroups
+
+    - name: Créer un groupe de ressources test si pas existant
+      azure_rm_resourcegroup:
+        name: "test-awx-rg"
+        location: "eastus"
+
+
