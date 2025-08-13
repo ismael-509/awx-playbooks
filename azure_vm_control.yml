@@ -1,5 +1,5 @@
 ---
-- name: Gestion de TestVM (Arrêt / Démarrage)
+- name: Gestion de TestVM (Démarrage / Arrêt)
   hosts: localhost
   connection: local
   collections:
@@ -7,11 +7,11 @@
   vars:
     resource_group: "MYRESOURCEGROUP"
     vm_name: "TestVM"
-    action: "start"   # ou "stop"
+    action: "running"
 
   tasks:
     - name: Contrôler l'état de la VM
-      azure.azcollection.azure_rm_virtualmachine_action:
+      azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
-        action: "{{ action }}"
+        state: "{{ action }}"
