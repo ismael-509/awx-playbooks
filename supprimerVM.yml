@@ -1,35 +1,34 @@
 ---
-- name: Supprimer MyUbuntuVM et ses ressources associées
+- name: Supprimer et recréer MyUbuntuVM sur Azure
   hosts: localhost
   connection: local
   collections:
     - azure.azcollection
+
   vars:
     resource_group: "MyTestRG"
     vm_name: "MyUbuntuVM"
+    location: "francecentral"
+    vm_size: "Standard_B1s"
+    admin_user: "ismael"
+    image: "Ubuntu2204"
 
   tasks:
-    - name: Supprimer la VM
+
+    - name: Supprimer la VM si elle existe
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
         state: absent
+      ignore_errors: yes
 
-    - name: Supprimer le disque OS managé
-      azure.azcollection.azure_rm_manageddisk:
+    - name: Créer la VM
+      azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}_OsDisk_1_f280046fe21b4781bd91fa238476ee09"
-        state: absent
-
-    - name: Supprimer l'interface réseau
-      azure.azcollection.azure_rm_networkinterface:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}VMNic"
-        state: absent
-
-    - name: Supprimer l'IP publique
-      azure.azcollection.azure_rm_publicipaddress:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}PublicIP"
-        state: absent
-
+        name: "{{ vm_name }}"
+        location: "{{ location }}"
+        vm_size: "{{ vm_size }}"
+        admin_username: "{{ admin_user }}"
+        image: "{{ image }}"
+        generate_ssh_keys: yes
+        public_ip_allocation_method: Static
