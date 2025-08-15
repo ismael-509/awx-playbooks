@@ -1,0 +1,21 @@
+---
+- name: Supprimer une VM Azure
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    resource_group: MyTestRG
+    vm_name: MyUbuntuVM
+
+  tasks:
+    - name: Supprimer la VM si elle existe
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}"
+        state: absent
+      register: vm_delete
+
+    - name: Afficher le résultat de la suppression
+      debug:
+        var: vm_delete
