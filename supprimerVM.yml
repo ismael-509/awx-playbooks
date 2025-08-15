@@ -1,21 +1,32 @@
 ---
-- name: Créer une VM Ubuntu sur Azure
+- name: Créer une VM Ubuntu sur Azure avec clé SSH
   hosts: localhost
   connection: local
   gather_facts: no
+  vars:
+    resource_group: "MyTestRG"
+    vm_name: "TestUbuntuVM"
+    location: "francecentral"
+    vm_size: "Standard_B1s"
+    admin_username: "azureuser"
+    ssh_public_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC5liO7euZdkl7sLORvXzgXrYPmkWLHezLE3SSzWTF/WcvCY25lLpikbHjtRBE/6D2fFwNNO7lR1daIZANYY6KoCx7JC1Q3+T+r/YMgmrMCCIw0LoLYK/hwwKTtqEpd2IHy/F/uVtgxh+Dd0hcfzffdF9LZ09zVJgDTXnJKrQ+SL/YrlEs5llweNhu4aC9woeSCB6U46hIepHF59FrfC9VYZVTAJ5k+7CTD1H4MCC75xEjS9gW2CDAbjHWMnw2MGnU/XB9O/XXtG3hZQFYt2NCWZEAsbt0OjzWAm0anxExz7yBsjnsuoSS+1DAo5jZkzdpmq0ySUH9tljSV2MkCT/bUGL1EQYCuaMq/CtCpJrYltIkX8wGAv/4EdxXS4DWEJzq9PepsgCNBbqK5xtYpLJRzO7Jt1TeEdtgYkO+vYR3OXnCxzrhrUwJ1JlDiMTWFGux0HaHJWdh4rmJp8llJHAFCQKvdA0y8Tn/G34v9flKQy/zqSC3GctTL1Ei2IJi6Q3JZo99k/CdCIvoCRKea8eJUeaZFZqU+WJ38IN0+ZrELmEJWurZ2kl68doScbH3qS2MMAf+XyO2ur8QVM3ttIt733dRsozc7d1hcGXy/7W2GsWf3iSVtnitvy1IX+NIXc5tI/rCF7W5eaJSOZzV5LfT4KEy6iETHQTMwk2rADp7moQ== root@node1"
 
   tasks:
-    - name: Créer la VM avec clé SSH
-      azure.azcollection.azure_rm_virtualmachine:
-        resource_group: MyTestRG
-        name: MyUbuntuVM
-        vm_size: Standard_B1s
-        admin_username: azureuser
+    - name: Créer la VM Ubuntu
+      azure_rm_virtualmachine:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}"
+        location: "{{ location }}"
+        vm_size: "{{ vm_size }}"
+        admin_username: "{{ admin_username }}"
+        ssh_password_enabled: false
+        ssh_public_keys:
+          - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+            key_data: "{{ ssh_public_key }}"
         image:
           offer: UbuntuServer
           publisher: Canonical
-          sku: 22_04-lts
+          sku: "22.04-LTS"
           version: latest
-        ssh_public_keys:
-          - "{{ lookup('file', '/tmp/awx_ssh/id_rsa_awx.pub') }}"
         state: present
+
