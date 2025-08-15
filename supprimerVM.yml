@@ -1,5 +1,5 @@
 ---
-- name: Supprimer et recréer MyUbuntuVM sur Azure
+- name: Créer une VM Ubuntu simple sur Azure
   hosts: localhost
   connection: local
   collections:
@@ -8,27 +8,20 @@
   vars:
     resource_group: "MyTestRG"
     vm_name: "MyUbuntuVM"
-    location: "francecentral"
+    vm_location: "francecentral"
+    admin_username: "ismael"
+    admin_password: "{{ vm_admin_password }}" 
     vm_size: "Standard_B1s"
-    admin_user: "ismael"
-    image: "Ubuntu2204"
+    image: "UbuntuLTS"
 
   tasks:
-
-    - name: Supprimer la VM si elle existe
-      azure.azcollection.azure_rm_virtualmachine:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}"
-        state: absent
-      ignore_errors: yes
-
     - name: Créer la VM
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
-        location: "{{ location }}"
+        location: "{{ vm_location }}"
         vm_size: "{{ vm_size }}"
-        admin_username: "{{ admin_user }}"
+        admin_username: "{{ admin_username }}"
+        admin_password: "{{ admin_password }}"
         image: "{{ image }}"
-        generate_ssh_keys: yes
-        public_ip_allocation_method: Static
+        state: present
