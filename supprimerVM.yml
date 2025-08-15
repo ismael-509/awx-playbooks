@@ -15,7 +15,26 @@
     location: francecentral
     vm_name: MyUbuntuVM
     admin_username: azureuser
-    ssh_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub"
+    ssh_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub---
+- name: Supprimer une VM Azure
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    awx_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub"
+
+  tasks:
+    - name: Vérifier que la clé publique existe
+      stat:
+        path: "{{ awx_public_key_file }}"
+      register: pubkey_file
+
+    - name: Échouer si la clé publique est introuvable
+      fail:
+        msg: "Le fichier de clé publique {{ awx_public_key_file }} est introuvable."
+      when: not pubkey_file.stat.exists
+
     vm_size: Standard_B1s
     image:
       offer: UbuntuServer
