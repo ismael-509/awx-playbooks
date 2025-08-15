@@ -32,6 +32,9 @@
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
         location: "{{ location }}"
+        ip_configurations:
+          - name: ipconfig1
+            public_ip_address_name: MyPublicAddress
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
         ssh_password_enabled: false
