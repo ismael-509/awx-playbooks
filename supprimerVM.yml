@@ -41,5 +41,5 @@
         image:
           publisher: Canonical
           offer: UbuntuServer
-          sku: 20_04-lts
+          sku: 18_04-lts
           version: latest
