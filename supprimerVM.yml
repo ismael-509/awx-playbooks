@@ -1,5 +1,5 @@
 ---
-- name: Créer une VM Ubuntu simple sur Azure
+- name: Créer une VM Ubuntu sur Azure avec SSH
   hosts: localhost
   connection: local
   collections:
@@ -8,20 +8,29 @@
   vars:
     resource_group: "MyTestRG"
     vm_name: "MyUbuntuVM"
-    vm_location: "francecentral"
-    admin_username: "ismael"
-    admin_password: "{{ vm_admin_password }}" 
+    location: "francecentral"
     vm_size: "Standard_B1s"
-    image: "UbuntuLTS"
+    admin_username: "ismael"
+    network_interface_names:
+      - "MyUbuntuVMNic"
+    image:
+      offer: "0001-com-ubuntu-server-jammy"
+      publisher: "Canonical"
+      sku: "22_04-lts-gen2"
+      version: "latest"
+    ssh_public_key_path: "/home/ismael/.ssh/id_rsa.pub"
 
   tasks:
-    - name: Créer la VM
+    - name: Créer la VM Ubuntu avec clé SSH
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
-        location: "{{ vm_location }}"
+        location: "{{ location }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
-        admin_password: "{{ admin_password }}"
+        network_interface_names: "{{ network_interface_names }}"
         image: "{{ image }}"
+        ssh_public_keys:
+          - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+            key_data: "{{ lookup('file', ssh_public_key_path) }}"
         state: present
