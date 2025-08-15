@@ -4,37 +4,38 @@
   connection: local
   gather_facts: no
   vars:
-    azure_resource_group: "MyTestRG"
-    azure_location: "EastUS"           # à adapter selon ton besoin
-    azure_vm_name: "MyUbuntuVM"
-    azure_vm_size: "Standard_B1s"      # à adapter selon ton besoin
-    azure_admin_user: "azureuser"
-    ssh_public_key_path: "/var/lib/awx/ssh_keys/id_rsa_awx.pub"
+    resource_group: MyTestRG
+    location: eastus
+    vm_name: UbuntuVM
+    admin_username: azureuser
+    ssh_public_key_path: /tmp/awx_ssh/id_rsa_awx.pub
+    vm_size: Standard_B1s
+    image:
+      offer: UbuntuServer
+      publisher: Canonical
+      sku: 22.04-LTS
+      version: latest
 
   tasks:
     - name: Créer le groupe de ressources si inexistant
-      azure_rm_resourcegroup:
-        name: "{{ azure_resource_group }}"
-        location: "{{ azure_location }}"
+      azure.azcollection.azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
 
-    - name: Créer la VM Ubuntu avec clé SSH
-      azure_rm_virtualmachine:
-        resource_group: "{{ azure_resource_group }}"
-        name: "{{ azure_vm_name }}"
-        vm_size: "{{ azure_vm_size }}"
-        admin_username: "{{ azure_admin_user }}"
+    - name: Créer la VM Ubuntu
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}"
+        vm_size: "{{ vm_size }}"
+        admin_username: "{{ admin_username }}"
         ssh_password_enabled: false
         ssh_public_keys:
-          - path: "/home/{{ azure_admin_user }}/.ssh/authorized_keys"
+          - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
             key_data: "{{ lookup('file', ssh_public_key_path) }}"
         image:
-          offer: "UbuntuServer"
-          publisher: "Canonical"
-          sku: "20_04-lts"
-          version: "latest"
+          offer: "{{ image.offer }}"
+          publisher: "{{ image.publisher }}"
+          sku: "{{ image.sku }}"
+          version: "{{ image.version }}"
         state: present
-      register: vm_creation
-
-    - name: Afficher les infos de la VM
-      debug:
-        var: vm_creation
+        location: "{{ location }}"
