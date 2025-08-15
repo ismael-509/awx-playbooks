@@ -35,6 +35,8 @@
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
         ssh_password_enabled: false
+        os_disk_name: "{{ vm_name }}-osdisk"
+        managed_disk_type: Standard_LRS
         network_interface_names:
           - "MyNIC"
         ssh_public_keys:
