@@ -13,7 +13,7 @@
         vm_size: Standard_B1s               
         admin_username: azureuser          
         ssh_public_keys:
-          - "{{ lookup('file', '/var/lib/awx/ssh_keys/id_rsa_awx.pub') }}"  
+          - "{{ lookup('file', '/var/lib/awx/.ssh/id_rsa_awx.pub') }}"
         image:
           offer: UbuntuServer
           publisher: Canonical
