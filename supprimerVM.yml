@@ -2,8 +2,7 @@
 - name: Supprimer une VM Azure
   hosts: localhost
   connection: local
-  gather_facts: false
-
+  gather_facts: no
   vars:
     resource_group: MyTestRG
     vm_name: MyUbuntuVM
@@ -14,8 +13,3 @@
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
         state: absent
-      register: vm_delete
-
-    - name: Afficher le résultat de la suppression
-      debug:
-        var: vm_delete
