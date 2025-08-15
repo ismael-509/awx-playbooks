@@ -2,44 +2,53 @@
 - name: Création d'une VM Ubuntu sur Azure
   hosts: localhost
   connection: local
-  gather_facts: false
-
+  gather_facts: no
   vars:
-    azure_resource_group: "MyTestRG"
-    azure_location: "francecentral"
-    azure_vm_name: "MyUbuntuVM"
-    azure_vm_size: "Standard_B1s"
-    azure_admin_user: "azureuser"
+    resource_group: MyTestRG
+    location: eastus         
+    vm_name: MyUbuntuVM
+    vm_size: Standard_B1s
+    admin_username: azureuser
     awx_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub"
+    image_publisher: Canonical
+    image_offer: UbuntuServer
+    image_sku: 22_04-lts
+    image_version: latest
 
   tasks:
     - name: Vérifier que la clé publique existe
       stat:
         path: "{{ awx_public_key_file }}"
-      register: pubkey_file
+      register: pubkey_stat
 
     - name: Échouer si la clé publique est introuvable
       fail:
-        msg: "Le fichier de clé publique {{ awx_public_key_file }} est introuvable."
-      when: not pubkey_file.stat.exists
+        msg: "Le fichier de clé publique {{ awx_public_key_file }} est introuvable. Veuillez le créer."
+      when: not pubkey_stat.stat.exists
 
     - name: Créer le groupe de ressources si inexistant
       azure.azcollection.azure_rm_resourcegroup:
-        name: "{{ azure_resource_group }}"
-        location: "{{ azure_location }}"
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
 
     - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
-        resource_group: "{{ azure_resource_group }}"
-        name: "{{ azure_vm_name }}"
-        vm_size: "{{ azure_vm_size }}"
-        admin_username: "{{ azure_admin_user }}"
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}"
+        vm_size: "{{ vm_size }}"
+        admin_username: "{{ admin_username }}"
         ssh_public_keys:
-          - path: "/home/{{ azure_admin_user }}/.ssh/authorized_keys"
+          - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
             key_data: "{{ lookup('file', awx_public_key_file) }}"
         image:
-          offer: UbuntuServer
-          publisher: Canonical
-          sku: 22_04-lts-gen2
-          version: latest
-        state: present
+          offer: "{{ image_offer }}"
+          publisher: "{{ image_publisher }}"
+          sku: "{{ image_sku }}"
+          version: "{{ image_version }}"
+        network_interfaces:
+          - name: "{{ vm_name }}-nic"
+            primary: yes
+            public_ip: yes
+            subnet_name: default
+            virtual_network_name: "{{ vm_name }}-vnet"
+            resource_group: "{{ resource_group }}"
