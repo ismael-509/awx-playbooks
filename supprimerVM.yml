@@ -4,6 +4,57 @@
   become: true
   vars:
     awx_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub"
+---
+- name: Créer une VM Ubuntu sur Azure
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    resource_group: MyTestRG
+    location: francecentral
+    vm_name: MyUbuntuVM
+    admin_username: azureuser
+    ssh_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub"
+    vm_size: Standard_B1s
+    image:
+      offer: UbuntuServer
+      publisher: Canonical
+      sku: 22_04-lts
+      version: latest
+
+  tasks:
+    - name: Vérifier que la clé publique existe
+      stat:
+        path: "{{ ssh_public_key_file }}"
+      register: pubkey_file
+
+    - name: Échouer si la clé publique est introuvable
+      fail:
+        msg: "Le fichier de clé publique {{ ssh_public_key_file }} est introuvable. Veuillez le créer."
+      when: not pubkey_file.stat.exists
+
+    - name: Créer le groupe de ressources si inexistant
+      azure.azcollection.azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+
+    - name: Créer la VM Ubuntu
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}"
+        vm_size: "{{ vm_size }}"
+        admin_username: "{{ admin_username }}"
+        ssh_password_enabled: false
+        ssh_public_keys:
+          - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+            key_data: "{{ lookup('file', ssh_public_key_file) }}"
+        image:
+          offer: "{{ image.offer }}"
+          publisher: "{{ image.publisher }}"
+          sku: "{{ image.sku }}"
+          version: "{{ image.version }}"
+        state: present
 
   tasks:
     - name: Vérifier si la clé publique existe localement
