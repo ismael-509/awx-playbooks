@@ -1,16 +1,17 @@
 ---
-- name: Créer une VM Ubuntu sur Azure avec clé SSH
+- name: Créer une VM Ubuntu sur Azure avec SSH
   hosts: localhost
   connection: local
   collections:
     - azure.azcollection
+
   vars:
-    resource_group: "MyTestRG"       
-    vm_name: "MyUbuntuVM"           
-    location: "francecentral"        
-    vm_size: "Standard_B1s"        
-    admin_username: "azureuser"    
-    ssh_public_key_path: "/var/lib/awx/.ssh/id_rsa_awx.pub"  
+    resource_group: "MyTestRG"
+    vm_name: "MyUbuntuVM"
+    location: "francecentral"
+    vm_size: "Standard_B1s"
+    admin_username: "ismael"
+    ssh_public_key_path: "/tmp/awx_ssh/id_rsa_awx.pub" 
 
   tasks:
     - name: Créer la VM Ubuntu avec clé SSH
@@ -21,16 +22,9 @@
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
         ssh_public_keys:
-          - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
-            key_data: "{{ lookup('file', ssh_public_key_path) }}"
+          - "{{ lookup('file', ssh_public_key_path) }}"
         image:
-          offer: UbuntuServer
-          publisher: Canonical
-          sku: 22_04-lts-gen2
-          version: latest
-        state: present
-      register: vm_creation
-
-    - name: Afficher le résultat
-      debug:
-        var: vm_creation
+          offer: "0001-com-ubuntu-server-jammy"
+          publisher: "Canonical"
+          sku: "22_04-lts-gen2"
+          version: "latest"
