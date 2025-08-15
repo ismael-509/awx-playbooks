@@ -7,12 +7,12 @@
     - azure.azcollection
 
   vars:
-    resource_group: "MyTestRG"        
-    vm_name: "MyUbuntuVM"            
-    location: "francecentral"        
-    vm_size: "Standard_B1s"          
-    admin_username: "ismael"         
-    ssh_pub_key_path: "/home/ismael/.ssh/id_rsa.pub"  
+    resource_group: "MyTestRG"
+    location: "francecentral"
+    vm_name: "MyUbuntuVM"
+    vm_size: "Standard_B1s"
+    admin_username: "azureuser"
+    ssh_pub_key_path: "/root/.ssh/awx_id_rsa.pub" 
 
   tasks:
     - name: Créer la VM Ubuntu avec clé SSH
@@ -23,11 +23,10 @@
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
         ssh_public_keys:
-          - path: /home/ismael/.ssh/authorized_keys
-            key_data: "{{ lookup('file', ssh_pub_key_path) }}"
+          - "{{ lookup('file', ssh_pub_key_path) }}"
         image:
-          offer: "0001-com-ubuntu-server-jammy"
-          publisher: "Canonical"
-          sku: "22_04-lts-gen2"
-          version: "latest"
+          offer: UbuntuServer
+          publisher: Canonical
+          sku: 22_04-lts
+          version: latest
         state: present
