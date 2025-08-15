@@ -1,5 +1,5 @@
 ---
-- name: Supprimer et recréer MyUbuntuVM sur Azure
+- name: Supprimer MyUbuntuVM et ses ressources associées
   hosts: localhost
   connection: local
   collections:
@@ -7,40 +7,29 @@
   vars:
     resource_group: "MyTestRG"
     vm_name: "MyUbuntuVM"
-    location: "francecentral"
-    admin_user: "ismael"
-    ssh_public_key_path: "/home/ismael/.ssh/authorized_keys"
-    vm_size: "Standard_B1s"
-    image_publisher: "Canonical"
-    image_offer: "0001-com-ubuntu-server-jammy"
-    image_sku: "22_04-lts-gen2"
-    image_version: "latest"
 
   tasks:
-    - name: Supprimer la VM si elle existe
+    - name: Supprimer la VM
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
         state: absent
-        delete_os_disk: yes
-        delete_data_disks: yes
-        delete_public_ip: yes
 
-    - name: Créer la VM avec les mêmes paramètres
-      azure.azcollection.azure_rm_virtualmachine:
+    - name: Supprimer le disque OS managé
+      azure.azcollection.azure_rm_manageddisk:
         resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}"
-        location: "{{ location }}"
-        vm_size: "{{ vm_size }}"
-        admin_username: "{{ admin_user }}"
-        ssh_password_enabled: false
-        ssh_public_keys:
-          - path: "{{ ssh_public_key_path }}"
-            key_data: "{{ lookup('file', ssh_public_key_path) }}"
-        image:
-          offer: "{{ image_offer }}"
-          publisher: "{{ image_publisher }}"
-          sku: "{{ image_sku }}"
-          version: "{{ image_version }}"
-        public_ip_allocation_method: Static
-        public_ip_sku: Standard
+        name: "{{ vm_name }}_OsDisk_1_f280046fe21b4781bd91fa238476ee09"
+        state: absent
+
+    - name: Supprimer l'interface réseau
+      azure.azcollection.azure_rm_networkinterface:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}VMNic"
+        state: absent
+
+    - name: Supprimer l'IP publique
+      azure.azcollection.azure_rm_publicipaddress:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}PublicIP"
+        state: absent
+
