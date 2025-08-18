@@ -1,55 +1,49 @@
 ---
 - name: Installer Docker sur VM Ubuntu
-  hosts: 131.145.119.221
+  hosts: 131.145.119.221  
   become: true
-  become_method: sudo
   tasks:
+
     - name: Mettre à jour la liste des paquets
-      apt:
+      ansible.builtin.apt:
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Installer les dépendances pour Docker
-      apt:
+    - name: Installer les dépendances nécessaires pour Docker
+      ansible.builtin.apt:
         name:
           - apt-transport-https
           - ca-certificates
           - curl
           - software-properties-common
         state: present
-        force: yes
+        update_cache: yes
 
     - name: Ajouter la clé GPG officielle Docker
-      apt_key:
+      ansible.builtin.get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+        dest: /usr/share/keyrings/docker-archive-keyring.gpg
+        mode: '0644'
 
     - name: Ajouter le repository Docker
-      apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
 
     - name: Mettre à jour les paquets après ajout du repo Docker
-      apt:
+      ansible.builtin.apt:
         update_cache: yes
 
-    - name: Installer Docker Engine
-      apt:
+    - name: Installer Docker
+      ansible.builtin.apt:
         name:
           - docker-ce
           - docker-ce-cli
           - containerd.io
         state: present
 
-    - name: Démarrer et activer Docker
-      service:
+    - name: S'assurer que Docker est démarré et activé
+      ansible.builtin.systemd:
         name: docker
         state: started
-        enabled: yes
-
-    - name: Vérifier la version Docker installée
-      command: docker --version
-      register: docker_version
-
-    - debug:
-        msg: "{{ docker_version.stdout }}"
+        enabled: true
