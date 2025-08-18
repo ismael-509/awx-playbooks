@@ -1,6 +1,6 @@
 ---
 - name: Installer Docker sur Ubuntu
-  hosts: ubuntu
+  hosts: 131.145.119.221  
   become: true
   tasks:
     - name: Mettre à jour la liste des paquets
