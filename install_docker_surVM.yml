@@ -1,5 +1,4 @@
 ---
----
 - name: Installer Docker sur VM Ubuntu
   hosts: 131.145.119.221
   become: yes                 
