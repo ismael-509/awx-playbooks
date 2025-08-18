@@ -1,34 +1,39 @@
 ---
-- name: Installer Docker sur Ubuntu
-  hosts: 131.145.119.221  
+- name: Installer Docker sur VM Ubuntu
+  hosts: all
   become: true
   tasks:
     - name: Mettre à jour la liste des paquets
       apt:
         update_cache: yes
 
-    - name: Installer les paquets nécessaires pour Docker
+    - name: Installer les paquets nécessaires
       apt:
-        name: ['apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common']
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
         state: present
 
-    - name: Ajouter la clé GPG officielle de Docker
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+    - name: Ajouter la clé GPG de Docker
+      shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/docker-archive-keyring.gpg
 
     - name: Ajouter le repository Docker
       apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu jammy stable"
         state: present
 
     - name: Installer Docker
       apt:
         name: docker-ce
         state: present
+        update_cache: yes
 
-    - name: S'assurer que Docker est démarré et activé
-      service:
+    - name: Démarrer et activer Docker
+      systemd:
         name: docker
         state: started
         enabled: true
