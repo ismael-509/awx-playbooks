@@ -1,5 +1,5 @@
 ---
-- name: Création d'une VM Ubuntu sans IP publique sur Azure
+- name: Création d'une VM Ubuntu sans NSG ni IP publique sur Azure
   hosts: localhost
   connection: local
   gather_facts: false
@@ -9,37 +9,13 @@
     vm_name: "UbuntuVMNoPublicIP"
     vm_size: "Standard_D2s_v3"
     admin_username: "azureuser"
-    admin_password: "Ismael123!"  
+    admin_password: "Ismael123!" 
+
+    # VNet/Subnet existants
+    virtual_network: "vnet-uksouth"
+    subnet_name: "snet-uksouth-1"
 
   tasks:
-    - name: Créer le groupe de ressources si inexistant
-      azure.azcollection.azure_rm_resourcegroup:
-        name: "{{ resource_group }}"
-        location: "{{ location }}"
-
-    - name: Créer le réseau virtuel
-      azure.azcollection.azure_rm_virtualnetwork:
-        name: "vnet-uksouth"
-        resource_group: "{{ resource_group }}"
-        address_prefixes: "10.0.0.0/16"
-        dns_servers: []
-
-    - name: Créer le subnet
-      azure.azcollection.azure_rm_subnet:
-        name: "snet-uksouth-1"
-        resource_group: "{{ resource_group }}"
-        address_prefix: "10.0.1.0/24"
-        virtual_network: "vnet-uksouth"
-
-    - name: Créer la carte réseau (NIC) sans IP publique
-      azure.azcollection.azure_rm_networkinterface:
-        name: "{{ vm_name }}-nic"
-        resource_group: "{{ resource_group }}"
-        virtual_network: "vnet-uksouth"
-        subnet: "snet-uksouth-1"
-        enable_ip_forwarding: no
-        private_ip_allocation_method: Dynamic
-
     - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
@@ -49,10 +25,15 @@
         admin_username: "{{ admin_username }}"
         admin_password: "{{ admin_password }}"
         network_interfaces:
-          - "{{ vm_name }}-nic"
+          - name: "{{ vm_name }}-nic"
+            subnet_name: "{{ subnet_name }}"
+            virtual_network_name: "{{ virtual_network }}"
+            public_ip_allocation_method: None  
         image:
           publisher: "Canonical"
           offer: "0001-com-ubuntu-server-jammy"
           sku: "22_04-lts-gen2"
           version: "latest"
+        os_disk_name: "{{ vm_name }}-osdisk"
+        managed_disk_type: "Standard_LRS"
         ssh_password_enabled: true
