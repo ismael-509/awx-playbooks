@@ -1,57 +1,46 @@
 ---
-- name: Installer Docker sur Ubuntu 22.04
+- name: Installer Docker sur VM Ubuntu 22.04
   hosts: all
   become: true
-  vars:
-    docker_packages:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-compose-plugin
-
   tasks:
+
     - name: Mettre à jour la liste des paquets
-      apt:
+      ansible.builtin.apt:
         update_cache: yes
-        cache_valid_time: 3600
 
     - name: Installer les dépendances nécessaires pour Docker
-      apt:
+      ansible.builtin.apt:
         name:
           - apt-transport-https
           - ca-certificates
           - curl
           - software-properties-common
         state: present
+        update_cache: yes
 
     - name: Ajouter la clé GPG officielle de Docker
-      ansible.builtin.apt_key:
+      ansible.builtin.get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+        dest: /usr/share/keyrings/docker-archive-keyring.gpg
+        mode: '0644'
 
     - name: Ajouter le dépôt Docker
       ansible.builtin.apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
         filename: docker.list
 
     - name: Mettre à jour la liste des paquets après ajout du dépôt
-      apt:
+      ansible.builtin.apt:
         update_cache: yes
 
-    - name: Installer Docker et ses composants
-      apt:
-        name: "{{ docker_packages }}"
+    - name: Installer Docker
+      ansible.builtin.apt:
+        name: docker-ce
         state: present
 
-    - name: S'assurer que le service Docker est activé et démarré
-      systemd:
+    - name: S'assurer que Docker est lancé et activé
+      ansible.builtin.service:
         name: docker
         state: started
         enabled: yes
-
-    - name: Ajouter l'utilisateur azureuser au groupe docker
-      user:
-        name: azureuser
-        groups: docker
-        append: yes
