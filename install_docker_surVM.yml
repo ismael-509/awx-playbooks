@@ -1,16 +1,14 @@
 ---
 - name: Installer Docker sur VM Ubuntu
-  hosts: 131.145.119.221  
+  hosts: 131.145.119.221
   become: true
   tasks:
-
     - name: Mettre à jour la liste des paquets
-      ansible.builtin.apt:
+      apt:
         update_cache: yes
-        cache_valid_time: 3600
 
-    - name: Installer les dépendances nécessaires pour Docker
-      ansible.builtin.apt:
+    - name: Installer les dépendances pour Docker
+      apt:
         name:
           - apt-transport-https
           - ca-certificates
@@ -19,31 +17,3 @@
         state: present
         update_cache: yes
 
-    - name: Ajouter la clé GPG officielle Docker
-      ansible.builtin.get_url:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        dest: /usr/share/keyrings/docker-archive-keyring.gpg
-        mode: '0644'
-
-    - name: Ajouter le repository Docker
-      ansible.builtin.apt_repository:
-        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
-        state: present
-
-    - name: Mettre à jour les paquets après ajout du repo Docker
-      ansible.builtin.apt:
-        update_cache: yes
-
-    - name: Installer Docker
-      ansible.builtin.apt:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
-        state: present
-
-    - name: S'assurer que Docker est démarré et activé
-      ansible.builtin.systemd:
-        name: docker
-        state: started
-        enabled: true
