@@ -1,5 +1,5 @@
 ---
-- name: Création d'une VM Ubuntu avec IP publique et NSG sur Azure
+- name: Création d'une VM Ubuntu avec IP publique sur Azure (sans NSG)
   hosts: localhost
   connection: local
   gather_facts: false
@@ -14,26 +14,8 @@
     nic_name: "UbuntuVMPublic-nic"
     vnet_name: "vnet-uksouth"
     subnet_name: "snet-uksouth-1"
-    nsg_name: "UbuntuVMPublic-NSG"
 
   tasks:
-    - name: Créer le NSG
-      azure.azcollection.azure_rm_networksecuritygroup:
-        resource_group: "{{ resource_group }}"
-        name: "{{ nsg_name }}"
-        location: "{{ location }}"
-
-    - name: Ajouter une règle SSH au NSG
-      azure.azcollection.azure_rm_securityrule:
-        resource_group: "{{ resource_group }}"
-        name: "AllowSSH"
-        security_group: "{{ nsg_name }}"
-        protocol: Tcp
-        destination_port_range: 22
-        access: Allow
-        direction: Inbound
-        priority: 1000
-
     - name: Créer l'IP publique
       azure.azcollection.azure_rm_publicipaddress:
         resource_group: "{{ resource_group }}"
@@ -41,14 +23,13 @@
         name: "{{ public_ip_name }}"
         location: "{{ location }}"
 
-    - name: Créer la NIC avec NSG et IP publique
+    - name: Créer la NIC avec IP publique
       azure.azcollection.azure_rm_networkinterface:
         resource_group: "{{ resource_group }}"
         name: "{{ nic_name }}"
         location: "{{ location }}"
         virtual_network: "{{ vnet_name }}"
         subnet_name: "{{ subnet_name }}"
-        network_security_group: "{{ nsg_name }}"
         public_ip_name: "{{ public_ip_name }}"
 
     - name: Créer la VM Ubuntu
