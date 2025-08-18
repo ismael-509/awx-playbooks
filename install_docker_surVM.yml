@@ -1,8 +1,17 @@
 ---
 - name: Installer Docker sur VM Ubuntu
-  hosts: all
+  hosts: 131.145.119.221  
   become: true
+  become_method: sudo
   tasks:
+    - name: S'assurer que le fichier extended_states existe
+      file:
+        path: /var/lib/apt/extended_states
+        state: touch
+        owner: root
+        group: root
+        mode: '0644'
+
     - name: Mettre à jour la liste des paquets
       apt:
         update_cache: yes
@@ -16,25 +25,39 @@
           - curl
           - software-properties-common
         state: present
+        force: yes
 
-    - name: Ajouter la clé GPG de Docker
+    - name: Ajouter la clé GPG officielle Docker
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
     - name: Ajouter le repository Docker
       apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
         state: present
 
-    - name: Installer Docker
+    - name: Mettre à jour les paquets après ajout du repo Docker
       apt:
-        name: docker-ce
-        state: present
         update_cache: yes
 
-    - name: S'assurer que Docker démarre
+    - name: Installer Docker Engine
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+
+    - name: S'assurer que Docker est démarré et activé
       service:
         name: docker
         state: started
-        enabled: true
+        enabled: yes
+
+    - name: Vérifier la version Docker installée
+      command: docker --version
+      register: docker_version
+
+    - debug:
+        msg: "{{ docker_version.stdout }}"
