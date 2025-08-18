@@ -1,0 +1,95 @@
+---
+- name: Création d'une VM Ubuntu complète sur Azure
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    resource_group: "MyTestRG2"
+    location: "uksouth"
+    vm_name: "MyUbuntuVM2"
+    vm_size: "Standard_D2s_v3"
+    admin_username: "azureuser"
+    admin_password: "Ismael123!"   # pour réactiver mot de passe si besoin
+    ssh_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub"
+    vnet_name: "vnet-uksouth2"
+    subnet_name: "snet-uksouth2"
+    public_ip_name: "MyPublicIP2"
+    nic_name: "MyNIC2"
+    nsg_name: "MyNSG2"
+
+  tasks:
+    - name: Vérifier que la clé publique existe
+      stat:
+        path: "{{ ssh_public_key_file }}"
+      register: key_file
+
+    - name: Échouer si la clé publique est introuvable
+      fail:
+        msg: "Le fichier de clé publique {{ ssh_public_key_file }} est introuvable. Veuillez le créer."
+      when: not key_file.stat.exists
+
+    - name: Créer le groupe de ressources
+      azure.azcollection.azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+
+    - name: Créer le VNet
+      azure.azcollection.azure_rm_virtualnetwork:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vnet_name }}"
+        address_prefixes: "10.1.0.0/16"
+
+    - name: Créer le Subnet
+      azure.azcollection.azure_rm_subnet:
+        resource_group: "{{ resource_group }}"
+        name: "{{ subnet_name }}"
+        address_prefix: "10.1.0.0/24"
+        virtual_network: "{{ vnet_name }}"
+
+    - name: Créer l'adresse IP publique
+      azure.azcollection.azure_rm_publicipaddress:
+        resource_group: "{{ resource_group }}"
+        allocation_method: Static
+        name: "{{ public_ip_name }}"
+
+    - name: Créer le NSG
+      azure.azcollection.azure_rm_networksecuritygroup:
+        resource_group: "{{ resource_group }}"
+        name: "{{ nsg_name }}"
+        location: "{{ location }}"
+        security_rules:
+          - name: AllowSSH
+            priority: 1000
+            direction: Inbound
+            access: Allow
+            protocol: Tcp
+            source_address_prefix: "*"
+            destination_port_range: 22
+
+    - name: Créer le NIC et l'associer au NSG
+      azure.azcollection.azure_rm_networkinterface:
+        resource_group: "{{ resource_group }}"
+        name: "{{ nic_name }}"
+        virtual_network: "{{ vnet_name }}"
+        subnet: "{{ subnet_name }}"
+        network_security_group: "{{ nsg_name }}"
+        public_ip_name: "{{ public_ip_name }}"
+
+    - name: Créer la VM Ubuntu
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}"
+        vm_size: "{{ vm_size }}"
+        admin_username: "{{ admin_username }}"
+        admin_password: "{{ admin_password }}"
+        ssh_password_enabled: true
+        ssh_public_keys:
+          - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+            key_data: "{{ lookup('file', ssh_public_key_file) }}"
+        network_interface_names:
+          - "{{ nic_name }}"
+        image:
+          publisher: "Canonical"
+          offer: "0001-com-ubuntu-server-jammy"
+          sku: "22_04-lts-gen2"
+          version: "latest"
