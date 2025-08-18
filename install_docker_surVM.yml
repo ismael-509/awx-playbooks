@@ -1,63 +1,54 @@
 ---
+---
 - name: Installer Docker sur VM Ubuntu
-  hosts: all
-  become: true
-  vars:
-    docker_packages:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - software-properties-common
-      - gnupg
+  hosts: 131.145.119.221
+  become: yes                 
+  gather_facts: yes
 
   tasks:
-    - name: Supprimer les fichiers de lock APT
-      file:
-        path: "{{ item }}"
-        state: absent
-        force: yes
-      loop:
-        - /var/lib/apt/lists/lock
-        - /var/lib/dpkg/lock
-        - /var/lib/dpkg/lock-frontend
-
-    - name: Corriger l'état dpkg en cas de problèmes
-      command: dpkg --configure -a
-      ignore_errors: yes
 
     - name: Mettre à jour la liste des paquets
       apt:
         update_cache: yes
         cache_valid_time: 3600
+      become: yes
 
     - name: Installer les dépendances nécessaires pour Docker
       apt:
-        name: "{{ docker_packages }}"
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
         state: present
-        update_cache: yes
+      become: yes
 
     - name: Ajouter la clé GPG officielle de Docker
-      apt_key:
+      ansible.builtin.apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
+      become: yes
 
-    - name: Ajouter le dépôt Docker stable
-      apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    - name: Ajouter le dépôt Docker
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
         state: present
-        filename: docker
+      become: yes
 
     - name: Mettre à jour la liste des paquets après ajout du dépôt
       apt:
         update_cache: yes
+      become: yes
 
     - name: Installer Docker
       apt:
         name: docker-ce
         state: latest
+      become: yes
 
-    - name: S'assurer que le service Docker est démarré et activé
+    - name: S'assurer que Docker est démarré et activé
       service:
         name: docker
         state: started
         enabled: yes
+      become: yes
