@@ -2,57 +2,32 @@
 - name: Installer Docker sur VM Ubuntu
   hosts: all
   become: yes
-  vars:
-    docker_keyring: /usr/share/keyrings/docker-archive-keyring.gpg
-
   tasks:
     - name: Mettre à jour la liste des paquets
-      ansible.builtin.apt:
+      apt:
         update_cache: yes
-        cache_valid_time: 3600
 
-    - name: Installer les dépendances nécessaires pour Docker
-      ansible.builtin.apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
+    - name: Installer les dépendances nécessaires
+      apt:
+        name: 
           - curl
-          - software-properties-common
         state: present
 
-    - name: Ajouter la clé GPG officielle de Docker
-      ansible.builtin.apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        keyring: "{{ docker_keyring }}"
-        state: present
+    - name: Télécharger et exécuter le script officiel Docker
+      shell: |
+        curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+        sh /tmp/get-docker.sh
+      args:
+        executable: /bin/bash
 
-    - name: Ajouter le repository Docker officiel
-      ansible.builtin.apt_repository:
-        repo: "deb [arch=amd64 signed-by={{ docker_keyring }}] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        state: present
+    - name: Ajouter l'utilisateur courant au groupe docker
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
 
-    - name: Mettre à jour la liste des paquets après ajout du repo
-      ansible.builtin.apt:
-        update_cache: yes
-
-    - name: Installer Docker
-      ansible.builtin.apt:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
-        state: present
-
-    - name: S'assurer que le service Docker est démarré
-      ansible.builtin.service:
+    - name: Activer et démarrer le service Docker
+      systemd:
         name: docker
-        state: started
         enabled: yes
-
-    - name: Vérifier la version de Docker
-      ansible.builtin.command: docker --version
-      register: docker_version
-
-    - name: Afficher la version de Docker
-      ansible.builtin.debug:
-        var: docker_version.stdout
+        state: started
