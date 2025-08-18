@@ -1,8 +1,40 @@
 ---
 - name: Installer Docker sur VM Ubuntu
   hosts: all
-  become: true          
+  become: true
   tasks:
     - name: Mettre à jour la liste des paquets
       apt:
         update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Installer les dépendances pour Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Ajouter la clé GPG de Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Ajouter le repository Docker
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+
+    - name: Installer Docker
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: S'assurer que Docker démarre
+      service:
+        name: docker
+        state: started
+        enabled: true
