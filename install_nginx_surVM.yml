@@ -1,0 +1,19 @@
+---
+- name: Déployer Nginx dans un conteneur Docker
+  hosts: all
+  become: true
+
+  tasks:
+    - name: S'assurer que Docker est installé
+      command: docker --version
+      register: docker_check
+      failed_when: docker_check.rc != 0
+
+    - name: Lancer Nginx dans Docker
+      community.docker.docker_container:
+        name: nginx
+        image: nginx:latest
+        state: started
+        restart_policy: always
+        ports:
+          - "80:80"
