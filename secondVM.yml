@@ -1,36 +1,31 @@
 ---
-- name: Création d'une VM Ubuntu avec IP publique sur Azure (sans NSG)
+- name: Création d'une VM Ubuntu sur Azure
   hosts: localhost
   connection: local
   gather_facts: false
   vars:
     resource_group: "MyTestRG"
     location: "uksouth"
-    vm_name: "UbuntuVMPublic"
+    vm_name: "MyUbuntuVM"
     vm_size: "Standard_D2s_v3"
     admin_username: "azureuser"
-    admin_password: "Ismael123!"
-    public_ip_name: "UbuntuVMPublic-ip"
-    nic_name: "UbuntuVMPublic-nic"
-    vnet_name: "vnet-uksouth"
-    subnet_name: "snet-uksouth-1"
+    awx_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub"
 
   tasks:
-    - name: Créer l'IP publique
-      azure.azcollection.azure_rm_publicipaddress:
-        resource_group: "{{ resource_group }}"
-        allocation_method: Dynamic
-        name: "{{ public_ip_name }}"
-        location: "{{ location }}"
+    - name: Vérifier que la clé publique existe
+      stat:
+        path: "{{ awx_public_key_file }}"
+      register: key_file
 
-    - name: Créer la NIC avec IP publique
-      azure.azcollection.azure_rm_networkinterface:
-        resource_group: "{{ resource_group }}"
-        name: "{{ nic_name }}"
+    - name: Échouer si la clé publique est introuvable
+      fail:
+        msg: "Le fichier de clé publique {{ awx_public_key_file }} est introuvable. Veuillez le créer."
+      when: not key_file.stat.exists
+
+    - name: Créer le groupe de ressources si inexistant
+      azure.azcollection.azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
         location: "{{ location }}"
-        virtual_network: "{{ vnet_name }}"
-        subnet_name: "{{ subnet_name }}"
-        public_ip_name: "{{ public_ip_name }}"
 
     - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
@@ -39,11 +34,16 @@
         location: "{{ location }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
-        admin_password: "{{ admin_password }}"
-        network_interfaces:
-          - "{{ nic_name }}"
+        ssh_password_enabled: false
+        os_disk_name: "{{ vm_name }}-osdisk"
+        managed_disk_type: Standard_LRS
+        network_interface_names:
+          - "MyNIC"
+        ssh_public_keys:
+          - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+            key_data: "{{ lookup('file', awx_public_key_file) }}"
         image:
-          offer: "0001-com-ubuntu-server-jammy"
           publisher: "Canonical"
+          offer: "0001-com-ubuntu-server-jammy"
           sku: "22_04-lts-gen2"
           version: "latest"
