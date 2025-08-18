@@ -1,19 +1,19 @@
 ---
-- name: Déployer Nginx dans un conteneur Docker
+- name: Installer Nginx sur Ubuntu
   hosts: all
   become: true
-
   tasks:
-    - name: S'assurer que Docker est installé
-      command: docker --version
-      register: docker_check
-      failed_when: docker_check.rc != 0
+    - name: Mettre à jour la liste des paquets
+      apt:
+        update_cache: yes
 
-    - name: Lancer Nginx dans Docker
-      community.docker.docker_container:
+    - name: Installer Nginx
+      apt:
         name: nginx
-        image: nginx:latest
+        state: present
+
+    - name: Démarrer et activer Nginx
+      systemd:
+        name: nginx
         state: started
-        restart_policy: always
-        ports:
-          - "80:80"
+        enabled: yes
