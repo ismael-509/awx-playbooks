@@ -2,11 +2,16 @@
 - name: Installer Docker sur VM Ubuntu
   hosts: all
   become: true
+  vars:
+    ansible_apt_install_retries: 5
+    ansible_apt_install_retry_interval: 10
 
   tasks:
     - name: Mettre à jour la liste des paquets
       apt:
         update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
 
     - name: Installer les paquets nécessaires pour Docker
       apt:
@@ -33,8 +38,8 @@
         state: latest
         update_cache: yes
 
-    - name: S'assurer que Docker démarre au boot
+    - name: Démarrer et activer Docker
       systemd:
         name: docker
-        enabled: yes
         state: started
+        enabled: yes
