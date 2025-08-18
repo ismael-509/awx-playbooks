@@ -1,17 +1,9 @@
 ---
 - name: Installer Docker sur VM Ubuntu
-  hosts: 131.145.119.221  
+  hosts: 131.145.119.221
   become: true
   become_method: sudo
   tasks:
-    - name: S'assurer que le fichier extended_states existe
-      file:
-        path: /var/lib/apt/extended_states
-        state: touch
-        owner: root
-        group: root
-        mode: '0644'
-
     - name: Mettre à jour la liste des paquets
       apt:
         update_cache: yes
@@ -49,7 +41,7 @@
           - containerd.io
         state: present
 
-    - name: S'assurer que Docker est démarré et activé
+    - name: Démarrer et activer Docker
       service:
         name: docker
         state: started
