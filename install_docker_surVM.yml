@@ -1,17 +1,12 @@
 ---
+
 - name: Installer Docker sur VM Ubuntu
   hosts: all
   become: true
-  vars:
-    ansible_apt_install_retries: 5
-    ansible_apt_install_retry_interval: 10
-
   tasks:
     - name: Mettre à jour la liste des paquets
       apt:
         update_cache: yes
-        force_apt_get: yes
-        cache_valid_time: 3600
 
     - name: Installer les paquets nécessaires pour Docker
       apt:
@@ -22,7 +17,7 @@
           - software-properties-common
         state: present
 
-    - name: Ajouter la clé GPG officielle de Docker
+    - name: Ajouter la clé GPG de Docker
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
@@ -35,11 +30,11 @@
     - name: Installer Docker
       apt:
         name: docker-ce
-        state: latest
+        state: present
         update_cache: yes
 
-    - name: Démarrer et activer Docker
-      systemd:
+    - name: Démarrer le service Docker
+      service:
         name: docker
         state: started
         enabled: yes
