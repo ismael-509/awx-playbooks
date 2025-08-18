@@ -1,41 +1,38 @@
 ---
 - name: Installer Docker sur VM Ubuntu
   hosts: all
-  become: true
+  become: true 
+    docker_packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - gnupg
+
   tasks:
 
     - name: Supprimer les fichiers de lock APT
       file:
         path: "{{ item }}"
         state: absent
+        force: yes
       loop:
         - /var/lib/apt/lists/lock
         - /var/lib/dpkg/lock
         - /var/lib/dpkg/lock-frontend
-        - /var/lib/apt/extended_states
 
-    - name: Recréer le fichier extended_states
-      file:
-        path: /var/lib/apt/extended_states
-        state: touch
-        owner: root
-        group: root
-        mode: '0644'
-
-    - name: Forcer la configuration des paquets bloqués
+    - name: Corriger l'état dpkg en cas de problèmes
       command: dpkg --configure -a
+      ignore_errors: yes
 
     - name: Mettre à jour la liste des paquets
       apt:
         update_cache: yes
+        cache_valid_time: 3600
 
-    - name: Installer les dépendances pour Docker
+    - name: Installer les dépendances nécessaires pour Docker
       apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - software-properties-common
+        name: "{{ docker_packages }}"
         state: present
         update_cache: yes
 
@@ -44,25 +41,23 @@
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
-    - name: Ajouter le repository Docker
+    - name: Ajouter le dépôt Docker stable
       apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
+        filename: docker
 
-    - name: Mettre à jour la liste des paquets après ajout du repo
+    - name: Mettre à jour la liste des paquets après ajout du dépôt
       apt:
         update_cache: yes
 
     - name: Installer Docker
       apt:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
-        state: present
+        name: docker-ce
+        state: latest
 
     - name: S'assurer que le service Docker est démarré et activé
-      systemd:
+      service:
         name: docker
         state: started
-        enabled: true
+        enabled: yes
