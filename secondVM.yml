@@ -1,20 +1,57 @@
 ---
-- name: Création d'une VM Ubuntu sans NSG ni IP publique sur Azure
+- name: Création d'une VM Ubuntu avec IP publique et NSG sur Azure
   hosts: localhost
   connection: local
   gather_facts: false
   vars:
     resource_group: "MyTestRG"
     location: "uksouth"
-    vm_name: "UbuntuVMNoPublicIP2"
+    vm_name: "UbuntuVMPublic"
     vm_size: "Standard_D2s_v3"
     admin_username: "azureuser"
     admin_password: "Ismael123!"
-    virtual_network: "vnet-uksouth"
+    public_ip_name: "UbuntuVMPublic-ip"
+    nic_name: "UbuntuVMPublic-nic"
+    vnet_name: "vnet-uksouth"
     subnet_name: "snet-uksouth-1"
+    nsg_name: "UbuntuVMPublic-NSG"
 
   tasks:
-    - name: Créer la VM Ubuntu avec NIC automatique
+    - name: Créer le NSG
+      azure.azcollection.azure_rm_networksecuritygroup:
+        resource_group: "{{ resource_group }}"
+        name: "{{ nsg_name }}"
+        location: "{{ location }}"
+
+    - name: Ajouter une règle SSH au NSG
+      azure.azcollection.azure_rm_securityrule:
+        resource_group: "{{ resource_group }}"
+        name: "AllowSSH"
+        security_group: "{{ nsg_name }}"
+        protocol: Tcp
+        destination_port_range: 22
+        access: Allow
+        direction: Inbound
+        priority: 1000
+
+    - name: Créer l'IP publique
+      azure.azcollection.azure_rm_publicipaddress:
+        resource_group: "{{ resource_group }}"
+        allocation_method: Dynamic
+        name: "{{ public_ip_name }}"
+        location: "{{ location }}"
+
+    - name: Créer la NIC avec NSG et IP publique
+      azure.azcollection.azure_rm_networkinterface:
+        resource_group: "{{ resource_group }}"
+        name: "{{ nic_name }}"
+        location: "{{ location }}"
+        virtual_network: "{{ vnet_name }}"
+        subnet_name: "{{ subnet_name }}"
+        network_security_group: "{{ nsg_name }}"
+        public_ip_name: "{{ public_ip_name }}"
+
+    - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
@@ -22,14 +59,10 @@
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
         admin_password: "{{ admin_password }}"
+        network_interfaces:
+          - "{{ nic_name }}"
         image:
-          publisher: "Canonical"
           offer: "0001-com-ubuntu-server-jammy"
+          publisher: "Canonical"
           sku: "22_04-lts-gen2"
           version: "latest"
-        os_disk_name: "{{ vm_name }}-osdisk"
-        managed_disk_type: "Standard_LRS"
-        ssh_password_enabled: true
-        virtual_network_name: "{{ virtual_network }}"
-        subnet_name: "{{ subnet_name }}"
-        public_ip_allocation_method: Disabled
