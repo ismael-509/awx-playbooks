@@ -32,4 +32,4 @@
         ssh_password_enabled: true
         virtual_network_name: "{{ virtual_network }}"
         subnet_name: "{{ subnet_name }}"
-        public_ip_allocation_method: None
+        public_ip_allocation_method: Disabled
