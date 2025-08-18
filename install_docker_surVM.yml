@@ -1,13 +1,34 @@
 ---
-- name: Installer Docker
-  hosts: all
+- name: Installer Docker sur Ubuntu
+  hosts: ubuntu
   become: true
   tasks:
     - name: Mettre à jour la liste des paquets
       apt:
         update_cache: yes
 
+    - name: Installer les paquets nécessaires pour Docker
+      apt:
+        name: ['apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common']
+        state: present
+
+    - name: Ajouter la clé GPG officielle de Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Ajouter le repository Docker
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
     - name: Installer Docker
       apt:
-        name: docker.io
+        name: docker-ce
         state: present
+
+    - name: S'assurer que Docker est démarré et activé
+      service:
+        name: docker
+        state: started
+        enabled: true
