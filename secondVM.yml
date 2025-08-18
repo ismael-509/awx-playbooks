@@ -1,74 +1,33 @@
 ---
-- name: Création d'une VM Ubuntu avec NSG et règle SSH sur Azure
+- name: Création d'une VM Ubuntu sur Azure sans NSG
   hosts: localhost
   connection: local
   gather_facts: false
 
   vars:
-    resource_group: "MySecondRG"
+    resource_group: "MyTestRG"
     location: "uksouth"
-    vm_name: "MySecondUbuntuVM"
+    vm_name: "UbuntuVMNoNSG"
     vm_size: "Standard_D2s_v3"
     admin_username: "azureuser"
-    admin_password: "Ismael123!"
-    nsg_name: "MySecondNSG"
-    nic_name: "MySecondNIC"
-    vnet_name: "MySecondVNet"
-    subnet_name: "MySecondSubnet"
-    public_ip_name: "MySecondPublicIP"
+    admin_password: "Ismael123!"    
+    ssh_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub"
 
   tasks:
-    - name: Créer le groupe de ressources
+    - name: Vérifier que la clé publique existe
+      stat:
+        path: "{{ ssh_public_key_file }}"
+      register: key_file
+
+    - name: Échouer si la clé publique est introuvable
+      fail:
+        msg: "Le fichier de clé publique {{ ssh_public_key_file }} est introuvable."
+      when: not key_file.stat.exists
+
+    - name: Créer le groupe de ressources si inexistant
       azure.azcollection.azure_rm_resourcegroup:
         name: "{{ resource_group }}"
         location: "{{ location }}"
-
-    - name: Créer le réseau virtuel
-      azure.azcollection.azure_rm_virtualnetwork:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vnet_name }}"
-        address_prefixes: "10.1.0.0/16"
-
-    - name: Créer le subnet
-      azure.azcollection.azure_rm_subnet:
-        resource_group: "{{ resource_group }}"
-        name: "{{ subnet_name }}"
-        address_prefix: "10.1.0.0/24"
-        virtual_network: "{{ vnet_name }}"
-
-    - name: Créer l'adresse IP publique
-      azure.azcollection.azure_rm_publicipaddress:
-        resource_group: "{{ resource_group }}"
-        allocation_method: Static
-        name: "{{ public_ip_name }}"
-
-    - name: Créer le NSG
-      azure.azcollection.azure_rm_networksecuritygroup:
-        resource_group: "{{ resource_group }}"
-        name: "{{ nsg_name }}"
-        location: "{{ location }}"
-
-    - name: Créer une règle NSG pour autoriser SSH
-      azure.azcollection.azure_rm_securityrule:
-        resource_group: "{{ resource_group }}"
-        network_security_group: "{{ nsg_name }}"
-        name: "AllowSSH"
-        priority: 1000
-        protocol: Tcp
-        destination_port_range: 22
-        access: Allow
-        direction: Inbound
-        source_address_prefix: "*"
-
-    - name: Créer la carte réseau et l'associer au NSG et au subnet
-      azure.azcollection.azure_rm_networkinterface:
-        resource_group: "{{ resource_group }}"
-        name: "{{ nic_name }}"
-        location: "{{ location }}"
-        subnet_name: "{{ subnet_name }}"
-        virtual_network_name: "{{ vnet_name }}"
-        network_security_group: "{{ nsg_name }}"
-        public_ip_name: "{{ public_ip_name }}"
 
     - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
@@ -77,11 +36,27 @@
         location: "{{ location }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
+        ssh_password_enabled: true      
         admin_password: "{{ admin_password }}"
-        network_interfaces: "{{ nic_name }}"
+        os_disk_name: "{{ vm_name }}-osdisk"
+        managed_disk_type: Standard_LRS
+        network_interface_names:
+          - "{{ vm_name }}-nic"
+        ssh_public_keys:
+          - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
+            key_data: "{{ lookup('file', ssh_public_key_file) }}"
         image:
-          publisher: Canonical
+          publisher: "Canonical"
           offer: "0001-com-ubuntu-server-jammy"
           sku: "22_04-lts-gen2"
-          version: latest
-        ssh_password_enabled: true
+          version: "latest"
+
+    - name: Créer une interface réseau pour la VM
+      azure.azcollection.azure_rm_networkinterface:
+        name: "{{ vm_name }}-nic"
+        resource_group: "{{ resource_group }}"
+        location: "{{ location }}"
+        virtual_network: "vnet-{{ location }}"
+        subnet: "snet-{{ location }}"
+        public_ip_name: "{{ vm_name }}-publicip"
+        enable_ip_forwarding: false
