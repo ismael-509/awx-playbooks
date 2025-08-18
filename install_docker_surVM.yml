@@ -1,7 +1,8 @@
 ---
 - name: Installer Docker sur VM Ubuntu
   hosts: all
-  become: true 
+  become: true
+  vars:
     docker_packages:
       - apt-transport-https
       - ca-certificates
@@ -10,7 +11,6 @@
       - gnupg
 
   tasks:
-
     - name: Supprimer les fichiers de lock APT
       file:
         path: "{{ item }}"
@@ -37,7 +37,7 @@
         update_cache: yes
 
     - name: Ajouter la clé GPG officielle de Docker
-      ansible.builtin.apt_key:
+      apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
