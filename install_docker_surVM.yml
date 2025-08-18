@@ -7,7 +7,7 @@
       apt:
         update_cache: yes
 
-    - name: Installer les paquets nécessaires
+    - name: Installer les packages nécessaires
       apt:
         name:
           - apt-transport-https
@@ -16,24 +16,24 @@
           - software-properties-common
         state: present
 
-    - name: Ajouter la clé GPG de Docker
-      shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-      args:
-        creates: /usr/share/keyrings/docker-archive-keyring.gpg
+    - name: Ajouter la clé Docker officielle
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
 
-    - name: Ajouter le repository Docker
+    - name: Ajouter le repo Docker
       apt_repository:
-        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu jammy stable"
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
         state: present
 
     - name: Installer Docker
       apt:
         name: docker-ce
-        state: present
-        update_cache: yes
+        state: latest
 
-    - name: Démarrer et activer Docker
-      systemd:
-        name: docker
-        state: started
-        enabled: true
+    - name: Vérifier que Docker fonctionne
+      command: docker --version
+      register: docker_version
+
+    - debug:
+        msg: "{{ docker_version.stdout }}"
