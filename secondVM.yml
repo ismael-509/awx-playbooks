@@ -1,72 +1,55 @@
 ---
-- name: Création d'une VM Ubuntu sur Azure
+- name: Création d'une VM Ubuntu avec NSG et règle SSH sur Azure
   hosts: localhost
   connection: local
   gather_facts: false
   vars:
-    resource_group: "MyTestRG2"
+    resource_group: "MyTestRG"
     location: "uksouth"
-    vm_name: "MyUbuntuVM2"
+    vm_name: "SecondUbuntuVM"
     vm_size: "Standard_D2s_v3"
     admin_username: "azureuser"
     admin_password: "Ismael123!"
-    nsg_name: "MyNSG2"
-    public_ip_name: "MyPublicIP2"
-    nic_name: "MyNIC2"
-    vnet_name: "vnet-uksouth"
-    subnet_name: "snet-uksouth-1"
+    nsg_name: "SecondNSG"
+    nic_name: "SecondNIC"
+    vnet_name: "SecondVNet"
+    subnet_name: "SecondSubnet"
+    public_ip_name: "SecondPublicIP"
 
   tasks:
+    - name: Créer le groupe de ressources
+      ansible.builtin.shell: |
+        az group create --name {{ resource_group }} --location {{ location }}
+      args:
+        executable: /bin/bash
 
-    - name: Créer le groupe de ressources si inexistant
-      azure.azcollection.azure_rm_resourcegroup:
-        name: "{{ resource_group }}"
-        location: "{{ location }}"
-
-    - name: Créer le NSG
-      azure.azcollection.azure_rm_networksecuritygroup:
-        resource_group: "{{ resource_group }}"
-        name: "{{ nsg_name }}"
-        location: "{{ location }}"
-        security_rules:
-          - name: AllowSSH
-            priority: 1000
-            direction: Inbound
-            access: Allow
-            protocol: Tcp
-            source_address_prefix: "*"
-            destination_port_range: 22
+    - name: Créer le réseau virtuel et le subnet
+      ansible.builtin.shell: |
+        az network vnet create --resource-group {{ resource_group }} --name {{ vnet_name }} --subnet-name {{ subnet_name }}
+      args:
+        executable: /bin/bash
 
     - name: Créer l'adresse IP publique
-      azure.azcollection.azure_rm_publicipaddress:
-        resource_group: "{{ resource_group }}"
-        allocation_method: Static
-        name: "{{ public_ip_name }}"
-        location: "{{ location }}"
+      ansible.builtin.shell: |
+        az network public-ip create --resource-group {{ resource_group }} --name {{ public_ip_name }}
+      args:
+        executable: /bin/bash
 
-    - name: Créer la NIC
-      azure.azcollection.azure_rm_networkinterface:
-        resource_group: "{{ resource_group }}"
-        name: "{{ nic_name }}"
-        location: "{{ location }}"
-        virtual_network: "{{ vnet_name }}"
-        subnet: "{{ subnet_name }}"
-        public_ip_name: "{{ public_ip_name }}"
-        network_security_group: "{{ nsg_name }}"
+    - name: Créer le NSG et règle SSH
+      ansible.builtin.shell: |
+        az network nsg create --resource-group {{ resource_group }} --name {{ nsg_name }} --location {{ location }}
+        az network nsg rule create --resource-group {{ resource_group }} --nsg-name {{ nsg_name }} --name AllowSSH --priority 1000 --direction Inbound --access Allow --protocol Tcp --destination-port-ranges 22
+      args:
+        executable: /bin/bash
+
+    - name: Créer la carte réseau et l'associer au NSG
+      ansible.builtin.shell: |
+        az network nic create --resource-group {{ resource_group }} --name {{ nic_name }} --vnet-name {{ vnet_name }} --subnet {{ subnet_name }} --network-security-group {{ nsg_name }} --public-ip-address {{ public_ip_name }}
+      args:
+        executable: /bin/bash
 
     - name: Créer la VM Ubuntu
-      azure.azcollection.azure_rm_virtualmachine:
-        resource_group: "{{ resource_group }}"
-        name: "{{ vm_name }}"
-        location: "{{ location }}"
-        vm_size: "{{ vm_size }}"
-        admin_username: "{{ admin_username }}"
-        admin_password: "{{ admin_password }}"
-        ssh_password_enabled: true
-        network_interface_names:
-          - "{{ nic_name }}"
-        image:
-          publisher: "Canonical"
-          offer: "0001-com-ubuntu-server-jammy"
-          sku: "22_04-lts-gen2"
-          version: "latest"
+      ansible.builtin.shell: |
+        az vm create --resource-group {{ resource_group }} --name {{ vm_name }} --nics {{ nic_name }} --image UbuntuLTS --size {{ vm_size }} --admin-username {{ admin_username }} --admin-password {{ admin_password }} --no-wait
+      args:
+        executable: /bin/bash
