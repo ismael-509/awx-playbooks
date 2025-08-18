@@ -9,6 +9,7 @@
     vm_name: "MyUbuntuVM"
     vm_size: "Standard_D2s_v3"
     admin_username: "azureuser"
+    admin_password: "Ismael123!"  
     awx_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub"
 
   tasks:
@@ -34,7 +35,8 @@
         location: "{{ location }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
-        ssh_password_enabled: false
+        admin_password: "{{ admin_password }}"     
+        ssh_password_enabled: true                 
         os_disk_name: "{{ vm_name }}-osdisk"
         managed_disk_type: Standard_LRS
         network_interface_names:
