@@ -1,53 +1,52 @@
 ---
 - name: Installer Docker sur VM Ubuntu
-  hosts: 131.145.119.221
-  become: yes                 
-  gather_facts: yes
+  hosts: all
+  become: yes
+  vars:
+    docker_gpg_key: /usr/share/keyrings/docker-archive-keyring.gpg
+    docker_repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
 
   tasks:
-
     - name: Mettre à jour la liste des paquets
-      apt:
+      ansible.builtin.apt:
         update_cache: yes
         cache_valid_time: 3600
-      become: yes
 
     - name: Installer les dépendances nécessaires pour Docker
-      apt:
+      ansible.builtin.apt:
         name:
           - apt-transport-https
           - ca-certificates
           - curl
           - software-properties-common
         state: present
-      become: yes
 
     - name: Ajouter la clé GPG officielle de Docker
-      ansible.builtin.apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
-      become: yes
+      ansible.builtin.shell: |
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o {{ docker_gpg_key }}
+      args:
+        executable: /bin/bash
 
     - name: Ajouter le dépôt Docker
       ansible.builtin.apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+        repo: "{{ docker_repo }}"
         state: present
-      become: yes
+        filename: docker.list
 
-    - name: Mettre à jour la liste des paquets après ajout du dépôt
-      apt:
+    - name: Mettre à jour à nouveau la liste des paquets
+      ansible.builtin.apt:
         update_cache: yes
-      become: yes
 
     - name: Installer Docker
-      apt:
-        name: docker-ce
-        state: latest
-      become: yes
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
 
-    - name: S'assurer que Docker est démarré et activé
-      service:
+    - name: S'assurer que le service Docker est démarré et activé
+      ansible.builtin.service:
         name: docker
         state: started
         enabled: yes
-      become: yes
