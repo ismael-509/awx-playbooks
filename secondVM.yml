@@ -10,8 +10,12 @@
     vm_name: "UbuntuVMNoNSG"
     vm_size: "Standard_D2s_v3"
     admin_username: "azureuser"
-    admin_password: "Ismael123!"    
+    admin_password: "Ismael123!" 
     ssh_public_key_file: "{{ playbook_dir }}/files/id_rsa_awx.pub"
+    vnet_name: "vnet-uksouth"
+    subnet_name: "snet-uksouth"
+    public_ip_name: "{{ vm_name }}-publicip"
+    nic_name: "{{ vm_name }}-nic"
 
   tasks:
     - name: Vérifier que la clé publique existe
@@ -29,6 +33,36 @@
         name: "{{ resource_group }}"
         location: "{{ location }}"
 
+    - name: Créer le VNet
+      azure.azcollection.azure_rm_virtualnetwork:
+        name: "{{ vnet_name }}"
+        resource_group: "{{ resource_group }}"
+        address_prefixes: "10.0.0.0/16"
+        location: "{{ location }}"
+
+    - name: Créer le subnet
+      azure.azcollection.azure_rm_subnet:
+        name: "{{ subnet_name }}"
+        resource_group: "{{ resource_group }}"
+        address_prefix: "10.0.0.0/24"
+        virtual_network: "{{ vnet_name }}"
+
+    - name: Créer une IP publique
+      azure.azcollection.azure_rm_publicipaddress:
+        name: "{{ public_ip_name }}"
+        resource_group: "{{ resource_group }}"
+        allocation_method: Dynamic
+        location: "{{ location }}"
+
+    - name: Créer l'interface réseau (NIC)
+      azure.azcollection.azure_rm_networkinterface:
+        name: "{{ nic_name }}"
+        resource_group: "{{ resource_group }}"
+        location: "{{ location }}"
+        virtual_network: "{{ vnet_name }}"
+        subnet: "{{ subnet_name }}"
+        public_ip_name: "{{ public_ip_name }}"
+
     - name: Créer la VM Ubuntu
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
@@ -36,12 +70,12 @@
         location: "{{ location }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
-        ssh_password_enabled: true      
+        ssh_password_enabled: true
         admin_password: "{{ admin_password }}"
         os_disk_name: "{{ vm_name }}-osdisk"
         managed_disk_type: Standard_LRS
         network_interface_names:
-          - "{{ vm_name }}-nic"
+          - "{{ nic_name }}"
         ssh_public_keys:
           - path: "/home/{{ admin_username }}/.ssh/authorized_keys"
             key_data: "{{ lookup('file', ssh_public_key_file) }}"
@@ -50,13 +84,3 @@
           offer: "0001-com-ubuntu-server-jammy"
           sku: "22_04-lts-gen2"
           version: "latest"
-
-    - name: Créer une interface réseau pour la VM
-      azure.azcollection.azure_rm_networkinterface:
-        name: "{{ vm_name }}-nic"
-        resource_group: "{{ resource_group }}"
-        location: "{{ location }}"
-        virtual_network: "vnet-{{ location }}"
-        subnet: "snet-{{ location }}"
-        public_ip_name: "{{ vm_name }}-publicip"
-        enable_ip_forwarding: false
