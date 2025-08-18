@@ -1,5 +1,5 @@
 ---
-- name: Installer Docker sur Ubuntu
+- name: Installer Docker
   hosts: all
   become: true
   tasks:
@@ -11,9 +11,3 @@
       apt:
         name: docker.io
         state: present
-
-    - name: Démarrer et activer Docker
-      systemd:
-        name: docker
-        state: started
-        enabled: yes
