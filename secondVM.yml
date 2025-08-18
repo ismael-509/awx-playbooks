@@ -6,17 +6,15 @@
   vars:
     resource_group: "MyTestRG"
     location: "uksouth"
-    vm_name: "UbuntuVMNoPublicIP"
+    vm_name: "UbuntuVMNoPublicIP2"
     vm_size: "Standard_D2s_v3"
     admin_username: "azureuser"
-    admin_password: "Ismael123!" 
-
-    # VNet/Subnet existants
+    admin_password: "Ismael123!"
     virtual_network: "vnet-uksouth"
     subnet_name: "snet-uksouth-1"
 
   tasks:
-    - name: Créer la VM Ubuntu
+    - name: Créer la VM Ubuntu avec NIC automatique
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
@@ -24,11 +22,6 @@
         vm_size: "{{ vm_size }}"
         admin_username: "{{ admin_username }}"
         admin_password: "{{ admin_password }}"
-        network_interfaces:
-          - name: "{{ vm_name }}-nic"
-            subnet_name: "{{ subnet_name }}"
-            virtual_network_name: "{{ virtual_network }}"
-            public_ip_allocation_method: None  
         image:
           publisher: "Canonical"
           offer: "0001-com-ubuntu-server-jammy"
@@ -37,3 +30,6 @@
         os_disk_name: "{{ vm_name }}-osdisk"
         managed_disk_type: "Standard_LRS"
         ssh_password_enabled: true
+        virtual_network_name: "{{ virtual_network }}"
+        subnet_name: "{{ subnet_name }}"
+        public_ip_allocation_method: None
