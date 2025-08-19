@@ -1,7 +1,7 @@
 ---
 - name: Installer Docker
   hosts: all
-  become: yes
+  become: yes          
   tasks:
     - name: Installer paquets nécessaires
       apt:
