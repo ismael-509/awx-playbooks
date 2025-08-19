@@ -1,9 +1,22 @@
 ---
-- name: Mettre à jour les paquets sur VM Ubuntu
-  hosts: 131.145.119.221
-  become: true
+- name: Vérifier les caractéristiques système de la VM
+  hosts: azure_vms
+  gather_facts: yes
+
   tasks:
-    - name: Mettre à jour la liste des paquets
-      ansible.builtin.apt:
-        update_cache: yes
-        cache_valid_time: 3600
+    - name: Afficher les informations CPU
+      debug:
+        msg: "{{ ansible_processor }}"
+
+    - name: Afficher la mémoire totale
+      debug:
+        msg: "{{ ansible_memtotal_mb }} MB"
+
+    - name: Afficher la version de l’OS
+      debug:
+        msg: "{{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+    - name: Afficher la taille des disques
+      debug:
+        msg: "{{ ansible_devices }}"
+
