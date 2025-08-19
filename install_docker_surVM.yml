@@ -1,33 +1,37 @@
 ---
-- name: Installer Docker sur VM Ubuntu
+- name: Installer Docker
   hosts: all
   become: yes
   tasks:
-    - name: Mettre à jour la liste des paquets
+    - name: Installer paquets nécessaires
       apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+        state: present
         update_cache: yes
 
-    - name: Installer les dépendances nécessaires
-      apt:
-        name: 
-          - curl
+    - name: Ajouter la clé GPG de Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
-    - name: Télécharger et exécuter le script officiel Docker
-      shell: |
-        curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
-        sh /tmp/get-docker.sh
-      args:
-        executable: /bin/bash
+    - name: Ajouter le repository Docker
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
 
-    - name: Ajouter l'utilisateur courant au groupe docker
-      user:
-        name: "{{ ansible_user }}"
-        groups: docker
-        append: yes
+    - name: Installer Docker Engine
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
 
-    - name: Activer et démarrer le service Docker
-      systemd:
+    - name: Démarrer et activer Docker
+      service:
         name: docker
-        enabled: yes
         state: started
+        enabled: yes
