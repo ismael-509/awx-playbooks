@@ -1,9 +1,9 @@
 ---
-- name: Test accès root
+- name: Test sudo avec AWX
   hosts: all
   become: yes
   tasks:
-    - name: Vérifier l’utilisateur courant
+    - name: Vérifier accès root
       command: whoami
       register: result
 
