@@ -1,11 +1,15 @@
 ---
-- name: Test sudo avec AWX
+- name: Installer Docker
   hosts: all
   become: yes
   tasks:
-    - name: Vérifier accès root
-      command: whoami
-      register: result
-
-    - debug:
-        msg: "Utilisateur courant: {{ result.stdout }}"
+    - name: Installer paquets nécessaires
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+        state: present
+        update_cache: yes
