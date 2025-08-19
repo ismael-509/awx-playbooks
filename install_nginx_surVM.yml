@@ -1,31 +1,33 @@
 ---
 - name: Installer et configurer Nginx
-  hosts: 131.145.119.221
-  become: true
-  gather_facts: true
+  hosts: all
+  become: yes
 
   tasks:
-    - name: Mettre à jour la liste des paquets
+    - name: Mettre à jour le cache apt
       apt:
         update_cache: yes
 
-    - name: Installer Nginx
+    - name: Installer nginx
       apt:
         name: nginx
         state: present
 
-    - name: Activer et démarrer Nginx
-      service:
+    - name: Activer et démarrer nginx
+      systemd:
         name: nginx
         state: started
         enabled: yes
 
-    - name: Vérifier que Nginx fonctionne
-      uri:
-        url: http://localhost
-        return_content: yes
-      register: nginx_page
-
-    - name: Afficher le contenu de la page Nginx
-      debug:
-        msg: "{{ nginx_page.content | truncate(100) }}"
+    - name: Déployer une page d'accueil personnalisée
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <html>
+          <head><title>Bienvenue sur mon serveur Nginx 🚀</title></head>
+          <body>
+          <h1>Installation réussie avec Ansible 🎉</h1>
+          <p>Serveur provisionné automatiquement par AWX.</p>
+          </body>
+          </html>
+        mode: '0644'
