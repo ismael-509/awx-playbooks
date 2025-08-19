@@ -1,9 +1,22 @@
 ---
-- name: Installer Docker via raw
-  hosts: all
-  become: yes
+- name: Installer MariaDB sur Ubuntu
+  hosts: 131.145.119.221
   tasks:
-    - name: Mettre à jour apt et installer paquets
-      raw: |
-        sudo apt-get update
-        sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+    - name: Mettre à jour la liste des paquets
+      raw: sudo apt update
+
+    - name: Installer MariaDB Server
+      raw: sudo apt install -y mariadb-server
+
+    - name: S'assurer que MariaDB est démarré et activé
+      raw: sudo systemctl enable mariadb
+      args:
+        warn: false
+
+    - name: Démarrer MariaDB
+      raw: sudo systemctl start mariadb
+      args:
+        warn: false
+
+    - name: Vérifier que MariaDB fonctionne
+      raw: sudo systemctl status mariadb | head -n 5
