@@ -1,6 +1,6 @@
 ---
 - name: Vérifier les caractéristiques système de la VM
-  hosts: azure_vms
+  hosts: all
   gather_facts: yes
 
   tasks:
@@ -19,4 +19,3 @@
     - name: Afficher la taille des disques
       debug:
         msg: "{{ ansible_devices }}"
-
