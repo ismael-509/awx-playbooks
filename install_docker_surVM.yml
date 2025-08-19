@@ -1,15 +1,9 @@
 ---
-- name: Installer Docker
+- name: Installer Docker via raw
   hosts: all
   become: yes
   tasks:
-    - name: Installer paquets nécessaires
-      apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - gnupg-agent
-          - software-properties-common
-        state: present
-        update_cache: yes
+    - name: Mettre à jour apt et installer paquets
+      raw: |
+        sudo apt-get update
+        sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
