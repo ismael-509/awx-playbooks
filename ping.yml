@@ -1,6 +1,6 @@
 ---
 - name: Installer Docker sur VM Ubuntu
-  hosts: 4.251.106.69
+  hosts: 131.145.119.221
   tasks:
     - name: update
       become: true
