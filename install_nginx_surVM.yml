@@ -5,27 +5,11 @@
   gather_facts: yes
 
   tasks:
-
-    - name: Supprimer les fichiers lock APT
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /var/lib/apt/lists/lock
-        - /var/lib/dpkg/lock
-        - /var/lib/dpkg/lock-frontend
-        - /var/cache/apt/archives/lock
-      become: yes
-
-    - name: Réinitialiser dpkg si nécessaire
-      command: dpkg --configure -a
-      become: yes
-      ignore_errors: yes
-
-    - name: Mettre à jour le cache apt
+    - name: Mettre à jour le cache apt (ignore lock errors)
       apt:
         update_cache: yes
       become: yes
+      ignore_errors: yes  
 
     - name: Installer nginx
       apt:
