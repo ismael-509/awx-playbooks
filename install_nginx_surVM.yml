@@ -1,7 +1,8 @@
 ---
-- name: Installer Nginx sur VM Ubuntu
-  hosts: all
-  become: yes
+- name: Installer et configurer Nginx
+  hosts: 131.145.119.221
+  become: true
+  gather_facts: true
 
   tasks:
     - name: Mettre à jour la liste des paquets
@@ -13,17 +14,18 @@
         name: nginx
         state: present
 
-    - name: Démarrer et activer le service Nginx
-      systemd:
+    - name: Activer et démarrer Nginx
+      service:
         name: nginx
-        enabled: yes
         state: started
+        enabled: yes
 
     - name: Vérifier que Nginx fonctionne
-      command: systemctl status nginx
-      register: nginx_status
-      ignore_errors: yes
+      uri:
+        url: http://localhost
+        return_content: yes
+      register: nginx_page
 
-    - name: Afficher le statut de Nginx
+    - name: Afficher le contenu de la page Nginx
       debug:
-        var: nginx_status.stdout_lines
+        msg: "{{ nginx_page.content | truncate(100) }}"
