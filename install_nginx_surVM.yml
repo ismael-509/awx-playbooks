@@ -1,23 +1,26 @@
 ---
 - name: Installer et configurer Nginx
   hosts: all
-  become: yes
+  become: yes  
 
   tasks:
     - name: Mettre à jour le cache apt
       apt:
         update_cache: yes
+      become: yes  
 
     - name: Installer nginx
       apt:
         name: nginx
         state: present
+      become: yes
 
     - name: Activer et démarrer nginx
       systemd:
         name: nginx
         state: started
         enabled: yes
+      become: yes
 
     - name: Déployer une page d'accueil personnalisée
       copy:
@@ -31,3 +34,4 @@
           </body>
           </html>
         mode: '0644'
+      become: yes
