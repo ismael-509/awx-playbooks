@@ -4,18 +4,18 @@
   gather_facts: yes
 
   tasks:
-    - name: Afficher les informations CPU
+    - name: Afficher les informations CPU (modèle uniquement)
       debug:
-        msg: "{{ ansible_processor }}"
+        msg: "{{ ansible_processor[2] }}"
 
-    - name: Afficher la mémoire totale
+    - name: Afficher la mémoire totale (en Go)
       debug:
-        msg: "{{ ansible_memtotal_mb }} MB"
+        msg: "{{ (ansible_memtotal_mb / 1024) | round(1) }} Go"
 
     - name: Afficher la version de l’OS
       debug:
         msg: "{{ ansible_distribution }} {{ ansible_distribution_version }}"
 
-    - name: Afficher la taille des disques
+    - name: Afficher les disques disponibles
       debug:
-        msg: "{{ ansible_devices }}"
+        msg: "{{ ansible_devices.keys() | list }}"
