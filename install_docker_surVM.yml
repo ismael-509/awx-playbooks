@@ -1,8 +1,15 @@
 ---
-- name: Test sudo
+- name: Installer Docker
   hosts: all
-  become: yes
+  become: yes     
   tasks:
-    - name: Vérifier droits root
-      command: whoami
-
+    - name: Installer paquets nécessaires
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+        state: present
+        update_cache: yes
