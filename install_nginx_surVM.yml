@@ -2,27 +2,25 @@
 - name: Installer et configurer Nginx sur Ubuntu
   hosts: all
   become: yes
+  become_method: sudo
+  become_user: root
   gather_facts: yes
 
   tasks:
-    - name: Mettre à jour le cache apt (ignore lock errors)
+    - name: Mettre à jour le cache apt
       apt:
         update_cache: yes
-      become: yes
-      ignore_errors: yes  
 
     - name: Installer nginx
       apt:
         name: nginx
         state: present
-      become: yes
 
     - name: Activer et démarrer nginx
       systemd:
         name: nginx
         state: started
         enabled: yes
-      become: yes
 
     - name: Déployer une page d'accueil personnalisée
       copy:
@@ -36,4 +34,3 @@
           </body>
           </html>
         mode: '0644'
-      become: yes
