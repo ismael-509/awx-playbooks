@@ -12,15 +12,12 @@
       prompt: "Entrez le nom de la VM"
       private: no
     - name: "vm_action"
-      prompt: "Action sur la VM (start/stop)"
+      prompt: "Action sur la VM (start ou stop)"
       private: no
-      choices:
-        - start
-        - stop
 
   tasks:
     - name: Démarrer ou arrêter la VM
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
-        state: "{{ 'started' if vm_action == 'start' else 'stopped' }}"
+        state: "{{ 'started' if vm_action | lower == 'start' else 'stopped' }}"
