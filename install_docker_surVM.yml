@@ -1,22 +1,54 @@
 ---
-- name: Installer MariaDB sur Ubuntu
-  hosts: 131.145.119.221
+- name: Installer Docker sur Ubuntu
+  hosts: all
+  become: yes
+  become_method: sudo
   tasks:
-    - name: Mettre à jour la liste des paquets
-      raw: sudo apt update
 
-    - name: Installer MariaDB Server
-      raw: sudo apt install -y mariadb-server
+    - name: Mettre à jour le cache APT
+      apt:
+        update_cache: yes
 
-    - name: S'assurer que MariaDB est démarré et activé
-      raw: sudo systemctl enable mariadb
-      args:
-        warn: false
+    - name: Installer les paquets nécessaires
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
 
-    - name: Démarrer MariaDB
-      raw: sudo systemctl start mariadb
-      args:
-        warn: false
+    - name: Ajouter la clé GPG officielle de Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
 
-    - name: Vérifier que MariaDB fonctionne
-      raw: sudo systemctl status mariadb | head -n 5
+    - name: Ajouter le dépôt officiel Docker
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Mettre à jour le cache APT après ajout dépôt
+      apt:
+        update_cache: yes
+
+    - name: Installer Docker Engine
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+
+    - name: Démarrer et activer le service Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Ajouter l’utilisateur actuel au groupe docker
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
