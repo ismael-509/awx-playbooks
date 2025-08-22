@@ -1,6 +1,6 @@
 ---
 - name: Arrêter une VM Azure
-  hosts: localhost
+  hosts: all
   connection: local
   gather_facts: no
   vars:
