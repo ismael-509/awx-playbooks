@@ -4,8 +4,8 @@
   connection: local
   gather_facts: no
   vars:
-    resource_group: "MYTESTRG"  
-    vm_name: "MyUbuntuVM"       
+    resource_group: "MYTESTRG"
+    vm_name: "MyUbuntuVM"
 
   tasks:
     - name: Arrêter la VM
