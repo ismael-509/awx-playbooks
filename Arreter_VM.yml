@@ -1,0 +1,15 @@
+---
+- name: Arrêter une VM Azure
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    resource_group: "MYTESTRG"  
+    vm_name: "MyUbuntuVM"       
+
+  tasks:
+    - name: Arrêter la VM
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vm_name }}"
+        state: stopped
