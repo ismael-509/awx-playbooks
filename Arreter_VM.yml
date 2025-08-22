@@ -1,15 +1,26 @@
 ---
-- name: Arrêter une VM Azure
-  hosts: all
+- name: Gérer l'état des VMs Azure
+  hosts: localhost
   connection: local
   gather_facts: no
-  vars:
-    resource_group: "MYTESTRG"
-    vm_name: "MyUbuntuVM"
+
+  vars_prompt:
+    - name: "resource_group"
+      prompt: "Entrez le Resource Group de la VM"
+      private: no
+    - name: "vm_name"
+      prompt: "Entrez le nom de la VM"
+      private: no
+    - name: "vm_action"
+      prompt: "Action sur la VM (start/stop)"
+      private: no
+      choices:
+        - start
+        - stop
 
   tasks:
-    - name: Arrêter la VM
+    - name: Démarrer ou arrêter la VM
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group }}"
         name: "{{ vm_name }}"
-        state: stopped
+        state: "{{ 'started' if vm_action == 'start' else 'stopped' }}"
